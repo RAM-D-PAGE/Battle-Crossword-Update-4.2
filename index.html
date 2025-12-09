@@ -239,11 +239,10 @@
                  <button onclick="showMultiplayerLobby()" class="w-full py-4 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg border-2 border-red-400 shadow-[0_0_15px_rgba(220,38,38,0.5)] transition-all active:scale-95 flex items-center justify-center gap-2"><span class="material-symbols-outlined">group</span> <span data-i18n="multiplayer">MULTIPLAYER</span></button>
                  <div class="flex gap-2">
                      <button onclick="document.getElementById('main-menu').style.display='none'; document.getElementById('modal-howtoplay').classList.remove('hidden')" class="flex-1 py-2 bg-gray-800 border border-gray-600 rounded text-gray-300 text-xs hover:bg-gray-700" data-i18n="how_to_play">HOW TO PLAY</button>
-                     <!-- FIXED: onClick now only calls openSettings(), no hiding logic -->
                      <button onclick="openSettings()" class="flex-1 py-2 bg-gray-800 border border-gray-600 rounded text-gray-300 text-xs hover:bg-gray-700" data-i18n="settings">SETTINGS</button>
                  </div>
              </div>
-             <div class="text-[10px] text-gray-600">v4.2 - Surrender Modal</div>
+             <div class="text-[10px] text-gray-600">v4.5 - Multiplayer Fixes</div>
          </div>
     </div>
 
@@ -445,13 +444,13 @@
                 'howto_step2_title': '2. โจมตีและป้องกัน',
                 'howto_step2_desc': 'ใช้พลังที่สะสมมาเพื่อโจมตีฝ่ายตรงข้าม ติดตั้งอาวุธ (การ์ดสีแดง) เพื่อเพิ่มความเสียหายแบบถาวร',
                 'howto_step3_title': '3. ใช้ไอเทม',
-                'howto_step3_desc': 'ใช้พลังเพื่อใช้การ์ด: อาวุธ (เพิ่มความเสียหายแบบถาวร), เวทมนตร์ (สร้างความเสียหายทันที), ยา (ฟื้นฟู HP/พลังกาย), สิ่งประดิษฐ์ (ผลพิเศษแบบเฉพาะ)',
+                'howto_step3_desc': 'ใช้พลังเพื่อใช้การ์ด: อาวุธ, เวทมนตร์, ยา, สิ่งประดิษฐ์',
                 'howto_step4_title': '4. ทำลายการ์ด',
                 'howto_step4_desc': 'เปิดโหมดทำลายการ์ดเพื่อกำจัดการ์ดที่ไม่ต้องการและรับพลังกาย',
                 'howto_step5_title': '5. ระบบเทิร์น',
-                'howto_step5_desc': 'คุณมีเวลา 90 วินาทีต่อเทิร์น สร้างหลายคำเพื่อสะสมพลังก่อนโจมตี พลังคำศัพท์จะคงอยู่ข้ามเทิร์นจนกว่าจะถูกใช้!',
+                'howto_step5_desc': 'คุณมีเวลา 90 วินาทีต่อเทิร์น สร้างหลายคำเพื่อสะสมพลังก่อนโจมตี',
                 'howto_step6_title': '6. เงื่อนไขชนะ',
-                'howto_step6_desc': 'ลด HP ฝ่ายตรงข้ามให้เหลือ 0 เพื่อชนะ! ใช้กลยุทธ์: สร้างพลังด้วยคำศัพท์, ใส่อาวุธเพื่อเพิ่มดาเมจถาวร, และกะจังหวะโจมตีให้ดี',
+                'howto_step6_desc': 'ลด HP ฝ่ายตรงข้ามให้เหลือ 0 เพื่อชนะ!',
                 'shuffle': 'สลับตัวอักษร',
                 'not_enough_stamina_5': 'พลังกายไม่พอ! (ต้องการ 5)',
                 'not_enough_stamina_20': 'พลังกายไม่พอ! (ต้องการ 20)',
@@ -764,17 +763,29 @@
                 }
             }
 
+            // AUTO DRAW Check
+            const isMyNewTurn = newData.game.currentPlayer === localPlayerKey && gameState.game.currentPlayer !== localPlayerKey;
+
             // Preserve Local
             const myHand = gameState.players[localPlayerKey].hand;
             const myDeck = gameState.players[localPlayerKey].deck;
             const mySel = gameState.game.selectedIndices;
             
+            // Preserve Chat
+            // Note: We use the server's chat array entirely to ensure sync
+            
             gameState = newData;
-            if(gameState.players[localPlayerKey]) {
+            
+            // Restore local hand/deck unless game reset
+            if (gameState.players[localPlayerKey]) {
                 gameState.players[localPlayerKey].hand = myHand;
                 gameState.players[localPlayerKey].deck = myDeck;
             }
             gameState.game.selectedIndices = mySel;
+
+            if (isMyNewTurn) {
+                drawCardsUntilFull();
+            }
 
             if(isGameStarting) {
                 document.getElementById('modal-multiplayer').style.display = 'none';
@@ -782,6 +793,19 @@
                 startTurn();
             }
             updateUI();
+        }
+        
+        function drawCardsUntilFull() {
+             const p = gameState.players[localPlayerKey];
+             let drawn = false;
+             while(p.hand.length < 5 && p.deck.length > 0) {
+                 p.hand.push(p.deck.pop());
+                 drawn = true;
+             }
+             if (drawn) {
+                 playSound('select');
+                 // Local state updated, no need to push full state yet, wait for action
+             }
         }
 
         async function updateSupabaseState() {
@@ -797,6 +821,25 @@
             const deck = () => Array(40).fill(null).map(()=>ITEMS[Math.floor(Math.random()*ITEMS.length)]);
             gameState.players.player1.deck = deck();
             if (gameMode === 'single') gameState.players.player2.deck = deck();
+        }
+
+        function refillLetters() {
+            const currentLen = gameState.game.letterPool.length;
+            const targetLen = Math.floor(Math.random() * 6) + 10; // 10-15 letters
+            
+            if (currentLen < 7) {
+                const vowels = "AEIOU";
+                const consonants = "BCDFGHJKLMNPQRSTVWXYZ";
+                const needed = targetLen - currentLen;
+                
+                for(let i=0; i<needed; i++) {
+                    const isVowel = Math.random() < 0.35;
+                    const source = isVowel ? vowels : consonants;
+                    gameState.game.letterPool.push(source[Math.floor(Math.random() * source.length)]);
+                }
+                // Don't sort automatically to keep visual stability, or sort if preferred
+                gameState.game.letterPool.sort(() => Math.random() - 0.5);
+            }
         }
 
         function generateLetters() {
@@ -885,6 +928,15 @@
              document.getElementById('player-active-buffs').innerHTML = myBHtml || `<span class="text-gray-500 italic">${getText('no_items')}</span>`;
 
              renderHand();
+             
+             // Chat Sync Display
+             if (gameState.game.chat) {
+                 const currentChatLen = document.getElementById('chat-messages').children.length;
+                 if (gameState.game.chat.length > currentChatLen) {
+                     renderChat(gameState.game.chat);
+                 }
+             }
+             
              updateWordHistoryList();
 
              const isMyTurn = gameState.game.currentPlayer === localPlayerKey && !gameState.game.isOver;
@@ -1036,9 +1088,12 @@
                  });
                  if(gameState.game.wordHistory.length > 20) gameState.game.wordHistory.pop();
 
-                 // Remove letters & Reset
+                 // Remove letters
                  gameState.game.selectedIndices.sort((a,b)=>b-a).forEach(i => gameState.game.letterPool.splice(i,1));
                  gameState.game.selectedIndices = [];
+                 
+                 // REFILL LOGIC
+                 refillLetters();
                  
                  showToast(`+${gain} Power!`, "text-blue-400");
                  playSound('magic');
@@ -1114,10 +1169,18 @@
             if(gameState.players[oppKey].hp <= 0) gameOver(); else endTurn();
             updateSupabaseState();
         }
-        function endTurn() {
-            if(gameState.game.currentPlayer !== localPlayerKey) return;
-            gameState.game.turn++; gameState.game.currentPlayer = localPlayerKey==='player1'?'player2':'player1'; gameState.game.timer = 90;
-            startTurn(); updateSupabaseState();
+        function endTurn(force = false) {
+            if (gameState.game.isOver) return;
+            if (!force && gameMode === 'multi' && gameState.game.currentPlayer !== localPlayerKey) return;
+
+            gameState.game.turn++; 
+            gameState.game.currentPlayer = gameState.game.currentPlayer === 'player1' ? 'player2' : 'player1'; 
+            gameState.game.timer = 90;
+            
+            // Auto refill and draw for next player happens in startTurn
+            startTurn(); 
+            updateSupabaseState();
+            
             if (gameMode === 'single' && gameState.game.currentPlayer === 'player2') { showToast(getText('opponent_turn'), "text-yellow-400"); setTimeout(botPlayTurn, 1500); }
         }
         function botPlayTurn() {
@@ -1132,17 +1195,28 @@
         function startTurn() { 
             if(gameState.game.turn > 1) gameState.players[gameState.game.currentPlayer].stamina = Math.min(MAX_STAMINA, gameState.players[gameState.game.currentPlayer].stamina + 20); 
             
-            // Draw cards until hand has 5
-            const pKey = gameState.game.currentPlayer;
-            const p = gameState.players[pKey];
-            while(p.hand.length < 5 && p.deck.length > 0) {
-                p.hand.push(p.deck.pop());
-            }
+            // Auto Draw Logic
+            drawCardsUntilFull();
+            
+            // Auto Refill Logic (if needed)
+            refillLetters();
             
             updateUI(); 
         }
+        
+        function drawCardsUntilFull() {
+             const pKey = gameState.game.currentPlayer;
+             const p = gameState.players[pKey];
+             while(p.hand.length < 5 && p.deck.length > 0) {
+                 p.hand.push(p.deck.pop());
+             }
+        }
+        
         function drawCard() {
              const p = gameState.players[localPlayerKey];
+             // FIX: Prevent drawing if not my turn
+             if(gameState.game.currentPlayer !== localPlayerKey) return showToast(getText('not_your_turn'), "text-red-400");
+
              if(p.stamina >= 20 && p.deck.length > 0) { p.stamina -= 20; p.hand.push(p.deck.pop()); updateSupabaseState(); updateUI(); playSound('select'); }
              else showToast(getText('not_enough_stamina_20'), "text-red-400");
         }
@@ -1169,7 +1243,8 @@
              const p = gameState.players[localPlayerKey];
              if(p.stamina >= 5) { 
                  p.stamina -= 5; 
-                 gameState.game.letterPool = generateLetters(); // USE NEW GENERATOR
+                 // Shuffle existing letters only (Just re-order)
+                 gameState.game.letterPool.sort(() => Math.random() - 0.5);
                  gameState.game.selectedIndices = []; 
                  updateUI(); updateSupabaseState(); 
              }
@@ -1178,18 +1253,22 @@
         function gameOver() { gameState.game.isOver = true; document.getElementById('game-over-screen').classList.remove('hidden'); }
         function toggleWordHistory() { document.getElementById('word-history-panel').classList.toggle('hidden'); }
         function checkReconnection() { const r = localStorage.getItem('rpg_room_id'); if(r) { document.getElementById('main-menu').style.display='none'; document.getElementById('room-id-input').value=r; joinGame(); } }
+        
         function startGlobalTimer() {
             if(gameTimerInterval) clearInterval(gameTimerInterval);
             gameTimerInterval = setInterval(() => {
                 if(gameState.game.status === 'PLAYING' && !gameState.game.isOver) {
-                     if(gameMode === 'single' || localPlayerKey === 'player1') {
-                         if(gameState.game.timer > 0) gameState.game.timer--; else endTurn();
+                     // Only the current player updates the timer to prevent sync issues
+                     if (gameState.game.currentPlayer === localPlayerKey) {
+                         if(gameState.game.timer > 0) gameState.game.timer--; 
+                         else endTurn(true); // Force end turn if timer runs out
                          updateSupabaseState();
                      }
                      updateUI();
                 }
             }, 1000);
         }
+        
         function sendChatMessage() {
             const i = document.getElementById('chat-input'); const m = i.value.trim(); if(!m) return;
             gameState.game.chat.push({sender: gameState.players[localPlayerKey].name, text: m});
