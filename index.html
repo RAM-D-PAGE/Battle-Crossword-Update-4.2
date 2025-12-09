@@ -983,20 +983,18 @@
             const myDeck = gameState.players[localPlayerKey].deck;
             const mySel = gameState.game.selectedIndices;
 
-            // Force Chat Update if changed (Real-time Fix)
-            if (newData.game.chat && newData.game.chat.length > 0) {
-                const newLast = newData.game.chat[newData.game.chat.length - 1];
-                const oldLast = gameState.game.chat && gameState.game.chat.length > 0 ? gameState.game.chat[gameState.game.chat.length - 1] : null;
-                // If history length diff or last msg diff, render
-                if (!oldLast || newLast.text !== oldLast.text || newLast.timestamp !== oldLast.timestamp || newData.game.chat.length !== (gameState.game.chat ? gameState.game.chat.length : 0)) {
-                    renderChat(newData.game.chat);
-                }
+            // Force Chat Update if changed (Real-time Fix: Always render if data exists)
+            if (newData.game.chat) {
+                renderChat(newData.game.chat);
             }
 
             gameState = newData;
 
-            // Restore local hand/deck unless game start
-            if (gameState.players[localPlayerKey] && !isGameStarting) {
+            // Check if local state was actually valid
+            const isLocalStateValid = myHand && myDeck && (myHand.length > 0 || myDeck.length > 0);
+
+            // Restore local hand/deck unless game start OR local state was empty
+            if (gameState.players[localPlayerKey] && !isGameStarting && isLocalStateValid) {
                 gameState.players[localPlayerKey].hand = myHand;
                 gameState.players[localPlayerKey].deck = myDeck;
                 gameState.game.selectedIndices = mySel;
@@ -1004,11 +1002,18 @@
 
             if (isMyNewTurn) {
                 drawCardsUntilFull();
+                playSound('select'); // Sound for turn start notification
+                showToast(getText('your_turn'), "text-green-400");
             }
 
             if (isGameStarting) {
                 document.getElementById('modal-multiplayer').style.display = 'none';
                 showToast(getText('player_2_joined'), "text-green-400");
+
+                // CRITICAL: If I am the starting player (Host/P1), I must initialize my hand/letters now.
+                if (gameState.game.currentPlayer === localPlayerKey) {
+                    startTurn();
+                }
                 updateUI();
             }
             updateUI();
@@ -1406,6 +1411,9 @@
 
             // Auto Refill Logic (if needed)
             refillLetters();
+
+            // Critical for Sync: Must save state after modifying letters/stamina/cards
+            updateSupabaseState();
 
             updateUI();
         }
