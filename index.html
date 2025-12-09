@@ -1341,10 +1341,12 @@
                 });
                 if (gameState.game.wordHistory.length > 20) gameState.game.wordHistory.pop();
 
+                // Remove letters
                 gameState.game.selectedIndices.sort((a, b) => b - a).forEach(i => gameState.game.letterPool.splice(i, 1));
                 gameState.game.selectedIndices = [];
 
-                refillLetters();
+                // REFILL LOGIC REMOVED per user request (Limit letters per turn)
+                // refillLetters();
                 updateSupabaseState();
 
                 showToast(`+${gain} Power!`, "text-blue-400");
