@@ -878,6 +878,7 @@
             roomId: null
         };
         let localPlayerKey = null;
+        const WORD_CACHE = {}; // Cache for validated words { word: { valid, ipa, thai, trans } }
         let gameMode = 'multi';
         let localSalvageMode = false;
         let currentLanguage = localStorage.getItem('gameLanguage') || 'TH';
@@ -1253,77 +1254,101 @@
             btn.disabled = true; btn.innerText = getText('checking');
 
             const word = gameState.game.selectedIndices.map(i => gameState.game.letterPool[i]).join("");
+            const wordLower = word.toLowerCase();
 
             let valid = false;
             let ipa = "";
             let translation = "ความหมาย";
+            let thaiReading = "";
 
-            // 1. Try Primary Dictionary (Rich Data)
-            try {
-                const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
-                if (dictRes.ok) {
+            // 1. CHECK CACHE
+            if (WORD_CACHE[wordLower]) {
+                const cache = WORD_CACHE[wordLower];
+                if (cache.valid) {
                     valid = true;
-                    const data = await dictRes.json();
-                    if (data[0]?.phonetic) ipa = data[0].phonetic;
-                    else if (data[0]?.phonetics?.length) ipa = data[0].phonetics.find(p => p.text)?.text || "";
+                    ipa = cache.ipa;
+                    translation = cache.trans;
+                    thaiReading = cache.thai;
+                }
+            } else {
+                // 2. PARALLEL API CALLS (Optimized)
+                try {
+                    // Start Translation Request immediately (don't wait for Dict)
+                    const transPromise = fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${word}`);
 
-                    // Try Translation
-                    try {
-                        const tr = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${word}`);
-                        if (tr.ok) { const td = await tr.json(); translation = td[0][0][0]; }
-                    } catch (e) { }
-                } else {
-                    // 2. Fallback: Datamuse API (Word Existence Check)
-                    try {
-                        const dmRes = await fetch(`https://api.datamuse.com/words?sp=${word.toLowerCase()}&max=1`);
+                    // Start Dictionary Request
+                    const dictPromise = fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${wordLower}`);
+
+                    // Wait for Dictionary first (primary validator)
+                    const dictRes = await dictPromise;
+
+                    if (dictRes.ok) {
+                        valid = true;
+                        const data = await dictRes.json();
+                        if (data[0]?.phonetic) ipa = data[0].phonetic;
+                        else if (data[0]?.phonetics?.length) ipa = data[0].phonetics.find(p => p.text)?.text || "";
+
+                        // Resolve Translation (if it finished)
+                        try {
+                            const trRes = await transPromise;
+                            if (trRes.ok) {
+                                const td = await trRes.json();
+                                translation = td[0][0][0];
+                            }
+                        } catch (e) { }
+
+                    } else {
+                        // 3. Fallback: Datamuse (If Dictionary fails)
+                        const dmRes = await fetch(`https://api.datamuse.com/words?sp=${wordLower}&max=1`);
                         if (dmRes.ok) {
                             const dmData = await dmRes.json();
-                            // Strict check: The word returned must match exactly what we typed
-                            if (dmData.length > 0 && dmData[0].word.toLowerCase() === word.toLowerCase()) {
+                            if (dmData.length > 0 && dmData[0].word.toLowerCase() === wordLower) {
                                 valid = true;
-                                // Datamuse doesn't give IPA/Trans easily, so we use placeholders or try translate again
+                                // Try Translation again if needed (or reuse promise if applicable, but simple is better here)
                                 try {
-                                    const tr = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${word}`);
-                                    if (tr.ok) { const td = await tr.json(); translation = td[0][0][0]; }
+                                    const trRes = await transPromise; // Can reuse the same promise!
+                                    if (trRes.ok) {
+                                        const td = await trRes.json();
+                                        translation = td[0][0][0];
+                                    }
                                 } catch (e) { }
                             }
                         }
-                    } catch (e) { /* ignore */ }
+                    }
+                } catch (e) {
+                    // Offline fallback
+                    valid = true;
+                    console.error("Validation error:", e);
                 }
-            } catch (e) { valid = true; } // Offline/Network Error Fallback
 
-            let thaiReading = ipaToThai(ipa);
+                // Gen Thai Reading
+                thaiReading = ipaToThai(ipa);
+
+                // SAVE TO CACHE
+                WORD_CACHE[wordLower] = { valid, ipa, thai: thaiReading, trans: translation };
+            }
 
             if (valid && word.length >= 2) {
                 const p = gameState.players[localPlayerKey];
                 const gain = word.length + (word.length >= 5 ? 2 : 0);
                 p.wordPower += gain;
 
-                // Show Result Pop-up locally immediately
                 showResultPopup(word, ipa, thaiReading, translation);
 
-                // Update History (Synced)
                 gameState.game.wordHistory.unshift({
-                    word: word,
-                    score: gain,
-                    player: localPlayerKey,
-                    timestamp: Date.now(),
-                    ipa: ipa,
-                    thai: thaiReading,
-                    trans: translation // Storing translation for syncing
+                    word: word, score: gain, player: localPlayerKey, timestamp: Date.now(),
+                    ipa: ipa, thai: thaiReading, trans: translation
                 });
                 if (gameState.game.wordHistory.length > 20) gameState.game.wordHistory.pop();
 
-                // Remove letters
                 gameState.game.selectedIndices.sort((a, b) => b - a).forEach(i => gameState.game.letterPool.splice(i, 1));
                 gameState.game.selectedIndices = [];
 
-                // REFILL LOGIC
                 refillLetters();
+                updateSupabaseState();
 
                 showToast(`+${gain} Power!`, "text-blue-400");
                 playSound('magic');
-                updateSupabaseState();
             } else {
                 showToast(getText('word_not_found'), "text-red-400");
                 playSound('error');
