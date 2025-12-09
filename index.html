@@ -16,42 +16,114 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* Screen Lock & Layout */
-        html, body {
+        html,
+        body {
             height: 100%;
             width: 100%;
             overflow: hidden;
-            overscroll-behavior: none; /* Prevent pull-to-refresh */
-            touch-action: none; /* Disable default touch actions like zooming */
+            overscroll-behavior: none;
+            /* Prevent pull-to-refresh */
+            touch-action: none;
+            /* Disable default touch actions like zooming */
             background-color: #111827;
             font-family: 'Kanit', sans-serif;
         }
 
-        .font-rpg { font-family: 'Cinzel', serif; }
-        .font-mono { font-family: 'Roboto Mono', monospace; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .font-rpg {
+            font-family: 'Cinzel', serif;
+        }
+
+        .font-mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         /* Animations */
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
-        .animate-float { animation: float 3s ease-in-out infinite; }
-        @keyframes damage-pop { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 20% { transform: translate(-50%, -150%) scale(1.5); opacity: 1; } 100% { transform: translate(-50%, -200%) scale(1); opacity: 0; } }
-        .damage-text { position: absolute; animation: damage-pop 1s ease-out forwards; pointer-events: none; text-shadow: 2px 2px 0 #000; z-index: 200; font-weight: 900; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #fff; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        
-        /* Card Styles */
-        .card-base { 
-            transition: all 0.2s ease-out; 
-            transform-style: preserve-3d; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-            flex-shrink: 0; 
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-6px);
+            }
         }
-        .card-playable:hover { 
-            transform: translateY(-20px) scale(1.05) !important; 
-            z-index: 50; 
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes damage-pop {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+
+            20% {
+                transform: translate(-50%, -150%) scale(1.5);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -200%) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .damage-text {
+            position: absolute;
+            animation: damage-pop 1s ease-out forwards;
+            pointer-events: none;
+            text-shadow: 2px 2px 0 #000;
+            z-index: 200;
+            font-weight: 900;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Card Styles */
+        .card-base {
+            transition: all 0.2s ease-out;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        .card-playable:hover {
+            transform: translateY(-20px) scale(1.05) !important;
+            z-index: 50;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
         }
-        .glass-panel { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(75, 85, 99, 0.4); }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(75, 85, 99, 0.4);
+        }
     </style>
 </head>
 
@@ -60,7 +132,8 @@
     <!-- BACKGROUND -->
     <div class="absolute inset-0 z-0 pointer-events-none">
         <div class="absolute inset-0 bg-gradient-to-b from-gray-900/95 via-gray-900/70 to-black/95 z-10"></div>
-        <img src="https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?q=80&w=2574&auto=format&fit=crop" class="w-full h-full object-cover opacity-30">
+        <img src="https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?q=80&w=2574&auto=format&fit=crop"
+            class="w-full h-full object-cover opacity-30">
     </div>
 
     <!-- TOP BAR (Fixed) -->
@@ -81,11 +154,17 @@
         <!-- Opponent -->
         <div class="flex flex-col items-center justify-center flex-1 mx-2 relative">
             <div id="opponent-damage-anchor" class="absolute top-1/2 left-1/2 pointer-events-none w-0 h-0"></div>
-            <h2 id="opponent-name" class="font-rpg text-red-400 text-sm tracking-widest leading-tight drop-shadow-md truncate max-w-[150px]">Player 2</h2>
+            <h2 id="opponent-name"
+                class="font-rpg text-red-400 text-sm tracking-widest leading-tight drop-shadow-md truncate max-w-[150px]">
+                Player 2</h2>
             <div class="w-full max-w-[200px] flex flex-col gap-0.5 mt-0.5">
-                <div class="relative w-full h-3 bg-gray-900/80 rounded-full border border-red-900/50 overflow-hidden shadow-inner">
-                    <div id="opponent-hp-bar" class="h-full bg-gradient-to-r from-red-700 to-red-500 transition-all duration-300 w-full"></div>
-                    <span id="opponent-hp-text" class="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white drop-shadow-md">100/100</span>
+                <div
+                    class="relative w-full h-3 bg-gray-900/80 rounded-full border border-red-900/50 overflow-hidden shadow-inner">
+                    <div id="opponent-hp-bar"
+                        class="h-full bg-gradient-to-r from-red-700 to-red-500 transition-all duration-300 w-full">
+                    </div>
+                    <span id="opponent-hp-text"
+                        class="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white drop-shadow-md">100/100</span>
                 </div>
                 <div id="opponent-active-buffs" class="h-4 flex justify-center items-center gap-1 overflow-hidden">
                     <span class="text-[9px] text-gray-500 italic">No buffs</span>
@@ -95,37 +174,54 @@
 
         <!-- Tools (Surrender, History, Settings) -->
         <div class="flex items-center gap-2 min-w-[80px] justify-end">
-             <button onclick="surrenderGame()" class="p-2 text-red-400 hover:text-white hover:bg-red-900/30 transition-colors rounded-full" title="Surrender"><span class="material-symbols-outlined text-lg">flag</span></button>
-             <button onclick="toggleWordHistory()" class="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/10" title="History"><span class="material-symbols-outlined text-lg">history</span></button>
-            <button onclick="openSettings()" class="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/10" title="Settings"><span class="material-symbols-outlined text-lg">settings</span></button>
+            <button onclick="surrenderGame()"
+                class="p-2 text-red-400 hover:text-white hover:bg-red-900/30 transition-colors rounded-full"
+                title="Surrender"><span class="material-symbols-outlined text-lg">flag</span></button>
+            <button onclick="toggleWordHistory()"
+                class="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                title="History"><span class="material-symbols-outlined text-lg">history</span></button>
+            <button onclick="openSettings()"
+                class="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                title="Settings"><span class="material-symbols-outlined text-lg">settings</span></button>
         </div>
     </header>
 
     <!-- CHAT UI (Fixed Top Left) -->
-    <div id="chat-ui" class="fixed top-20 left-4 z-50 w-64 bg-black/80 border border-gray-700 rounded-lg flex flex-col transition-all duration-300 shadow-2xl backdrop-blur-md">
-        <div class="flex justify-between items-center p-2 bg-gray-900/80 border-b border-gray-700 cursor-pointer rounded-t-lg hover:bg-gray-800" onclick="toggleChatCollapse()">
+    <div id="chat-ui"
+        class="fixed top-20 left-4 z-50 w-64 bg-black/80 border border-gray-700 rounded-lg flex flex-col transition-all duration-300 shadow-2xl backdrop-blur-md">
+        <div class="flex justify-between items-center p-2 bg-gray-900/80 border-b border-gray-700 cursor-pointer rounded-t-lg hover:bg-gray-800"
+            onclick="toggleChatCollapse()">
             <span class="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">chat</span> Chat
             </span>
             <span class="material-symbols-outlined text-xs text-gray-500" id="chat-toggle-icon">expand_more</span>
         </div>
         <div id="chat-body" class="transition-all duration-300 h-32 flex flex-col overflow-hidden">
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-2 text-xs space-y-1 scrollbar-hide bg-black/40"><div class="text-gray-500 italic text-[10px] text-center" data-i18n="game_started">Game Started</div></div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-2 text-xs space-y-1 scrollbar-hide bg-black/40">
+                <div class="text-gray-500 italic text-[10px] text-center" data-i18n="game_started">Game Started</div>
+            </div>
             <div class="p-1 border-t border-gray-700 flex bg-gray-900">
-                <input type="text" id="chat-input" class="w-full bg-transparent text-xs text-white px-2 py-1 focus:outline-none placeholder-gray-600" placeholder="Type..." onkeypress="if(event.key==='Enter') sendChatMessage()">
-                <button onclick="sendChatMessage()" class="text-blue-400 hover:text-white px-1"><span class="material-symbols-outlined text-sm">send</span></button>
+                <input type="text" id="chat-input"
+                    class="w-full bg-transparent text-xs text-white px-2 py-1 focus:outline-none placeholder-gray-600"
+                    placeholder="Type..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="text-blue-400 hover:text-white px-1"><span
+                        class="material-symbols-outlined text-sm">send</span></button>
             </div>
         </div>
     </div>
 
     <!-- MAIN GAME AREA -->
     <main class="absolute inset-0 pt-20 pb-40 flex flex-col items-center justify-start z-10 w-full pointer-events-none">
-        
+
         <!-- Word Result (Pop-up) -->
-        <div id="word-result-display" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 border-2 border-blue-500/50 rounded-xl px-8 py-6 text-center hidden transition-all duration-300 z-[100] shadow-[0_0_50px_rgba(37,99,235,0.5)] backdrop-blur-xl transform scale-95 pointer-events-none">
-            <div id="result-word" class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 font-rpg tracking-wider mb-2">WORD</div>
+        <div id="word-result-display"
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 border-2 border-blue-500/50 rounded-xl px-8 py-6 text-center hidden transition-all duration-300 z-[100] shadow-[0_0_50px_rgba(37,99,235,0.5)] backdrop-blur-xl transform scale-95 pointer-events-none">
+            <div id="result-word"
+                class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 font-rpg tracking-wider mb-2">
+                WORD</div>
             <div class="flex flex-col gap-2 justify-center items-center">
-                <span id="result-ipa" class="text-base text-blue-300 font-mono bg-blue-900/30 px-3 py-1 rounded-full border border-blue-500/30">/wɜːd/</span>
+                <span id="result-ipa"
+                    class="text-base text-blue-300 font-mono bg-blue-900/30 px-3 py-1 rounded-full border border-blue-500/30">/wɜːd/</span>
                 <span id="result-thai" class="text-2xl text-yellow-400 font-bold drop-shadow-md">คำแปล</span>
             </div>
         </div>
@@ -136,210 +232,324 @@
                 <span class="material-symbols-outlined text-2xl">bolt</span>
                 <span class="font-rpg text-4xl font-bold text-white" id="word-power">0</span>
             </div>
-            <span class="text-[9px] text-blue-400 uppercase tracking-[0.3em] font-bold" data-i18n="word_power">WORD POWER</span>
+            <span class="text-[9px] text-blue-400 uppercase tracking-[0.3em] font-bold" data-i18n="word_power">WORD
+                POWER</span>
         </div>
 
         <!-- Word Slot -->
-        <div id="word-slot" class="w-full max-w-xl min-h-[70px] flex flex-wrap justify-center items-center gap-2 p-3 my-6 pointer-events-auto transition-all">
-            <span class="text-gray-600 text-sm animate-pulse font-rpg" data-i18n="select_letters">SELECT LETTERS...</span>
+        <div id="word-slot"
+            class="w-full max-w-xl min-h-[70px] flex flex-wrap justify-center items-center gap-2 p-3 my-6 pointer-events-auto transition-all">
+            <span class="text-gray-600 text-sm animate-pulse font-rpg" data-i18n="select_letters">SELECT
+                LETTERS...</span>
         </div>
 
         <!-- Action Buttons -->
         <div class="flex gap-6 mb-6 scalable-ui pointer-events-auto">
-            <button onclick="clearWord()" class="w-12 h-12 flex items-center justify-center rounded-full bg-red-900/80 border border-red-500 text-red-200 hover:bg-red-700 transition-all shadow-lg active:scale-95 group"><span class="material-symbols-outlined group-active:scale-90">delete</span></button>
-            <button id="btn-confirm" onclick="confirmWord()" class="h-12 px-8 bg-gradient-to-b from-green-700 to-green-800 hover:from-green-600 hover:to-green-700 border-b-4 border-green-900 text-white font-rpg font-bold text-xl rounded-xl shadow-lg active:border-b-0 active:translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:border-b-4 disabled:translate-y-0" data-i18n="generate_power">GENERATE</button>
-            <button onclick="backspaceWord()" class="w-12 h-12 flex items-center justify-center rounded-full bg-orange-900/80 border border-orange-500 text-orange-200 hover:bg-orange-700 transition-all shadow-lg active:scale-95 group"><span class="material-symbols-outlined group-active:scale-90">backspace</span></button>
+            <button onclick="clearWord()"
+                class="w-12 h-12 flex items-center justify-center rounded-full bg-red-900/80 border border-red-500 text-red-200 hover:bg-red-700 transition-all shadow-lg active:scale-95 group"><span
+                    class="material-symbols-outlined group-active:scale-90">delete</span></button>
+            <button id="btn-confirm" onclick="confirmWord()"
+                class="h-12 px-8 bg-gradient-to-b from-green-700 to-green-800 hover:from-green-600 hover:to-green-700 border-b-4 border-green-900 text-white font-rpg font-bold text-xl rounded-xl shadow-lg active:border-b-0 active:translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:border-b-4 disabled:translate-y-0"
+                data-i18n="generate_power">GENERATE</button>
+            <button onclick="backspaceWord()"
+                class="w-12 h-12 flex items-center justify-center rounded-full bg-orange-900/80 border border-orange-500 text-orange-200 hover:bg-orange-700 transition-all shadow-lg active:scale-95 group"><span
+                    class="material-symbols-outlined group-active:scale-90">backspace</span></button>
         </div>
 
         <!-- Letter Rack -->
         <div class="relative w-full max-w-2xl px-4 pointer-events-auto">
-            <div id="letter-rack" class="flex flex-wrap justify-center gap-2 p-4 bg-black/40 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-sm min-h-[80px]"></div>
-            <button onclick="shuffleLetters()" class="absolute -right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-blue-900/80 border border-blue-500 rounded-full flex items-center justify-center text-blue-200 hover:bg-blue-700 shadow-lg active:scale-95 transition-all" title="Shuffle (-5 STM)"><span class="material-symbols-outlined text-sm">shuffle</span></button>
+            <div id="letter-rack"
+                class="flex flex-wrap justify-center gap-2 p-4 bg-black/40 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-sm min-h-[80px]">
+            </div>
+            <button onclick="shuffleLetters()"
+                class="absolute -right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-blue-900/80 border border-blue-500 rounded-full flex items-center justify-center text-blue-200 hover:bg-blue-700 shadow-lg active:scale-95 transition-all"
+                title="Shuffle (-5 STM)"><span class="material-symbols-outlined text-sm">shuffle</span></button>
         </div>
     </main>
 
     <!-- HAND (FIXED BOTTOM CENTER) -->
-    <div class="fixed bottom-0 left-0 w-full h-[220px] pointer-events-none z-30 flex justify-center items-end pb-4 overflow-visible">
-        <div id="hand-container" class="relative w-auto max-w-full px-8 h-full pointer-events-auto flex justify-center items-end gap-3">
+    <div
+        class="fixed bottom-0 left-0 w-full h-[220px] pointer-events-none z-30 flex justify-center items-end pb-4 overflow-visible">
+        <div id="hand-container"
+            class="relative w-auto max-w-full px-8 h-full pointer-events-auto flex justify-center items-end gap-3">
             <!-- Cards go here -->
         </div>
     </div>
 
     <!-- BOTTOM HUD (Left/Right Corners) -->
     <footer class="absolute bottom-4 left-4 right-4 z-20 flex justify-between items-end pointer-events-none">
-        
+
         <!-- LEFT: Deck & Salvage -->
         <div class="flex gap-3 items-end pointer-events-auto">
             <div class="relative group cursor-pointer active:scale-95 transition-transform" onclick="drawCard()">
-                <div class="w-16 h-24 bg-gray-800 border-2 border-gray-600 rounded-lg flex items-center justify-center shadow-xl group-hover:border-blue-400 transition-colors">
-                    <span class="material-symbols-outlined text-2xl text-gray-500 group-hover:text-blue-400">style</span>
+                <div
+                    class="w-16 h-24 bg-gray-800 border-2 border-gray-600 rounded-lg flex items-center justify-center shadow-xl group-hover:border-blue-400 transition-colors">
+                    <span
+                        class="material-symbols-outlined text-2xl text-gray-500 group-hover:text-blue-400">style</span>
                 </div>
-                <div class="absolute -top-2 -right-2 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold border border-white shadow-md" id="deck-count">0</div>
-                <span class="absolute -bottom-4 w-full text-center text-[9px] text-gray-400 font-bold uppercase tracking-wider" data-i18n="draw">DRAW</span>
+                <div class="absolute -top-2 -right-2 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold border border-white shadow-md"
+                    id="deck-count">0</div>
+                <span
+                    class="absolute -bottom-4 w-full text-center text-[9px] text-gray-400 font-bold uppercase tracking-wider"
+                    data-i18n="draw">DRAW</span>
             </div>
-            
-            <div id="salvage-zone" class="w-14 h-14 rounded-full border-2 border-dashed border-gray-600 bg-black/40 flex items-center justify-center cursor-pointer hover:bg-red-900/30 hover:border-red-500 transition-all group active:scale-95" onclick="toggleSalvageMode()">
+
+            <div id="salvage-zone"
+                class="w-14 h-14 rounded-full border-2 border-dashed border-gray-600 bg-black/40 flex items-center justify-center cursor-pointer hover:bg-red-900/30 hover:border-red-500 transition-all group active:scale-95"
+                onclick="toggleSalvageMode()">
                 <span class="material-symbols-outlined text-lg text-gray-500 group-hover:text-red-400">delete</span>
             </div>
         </div>
 
         <!-- RIGHT: Player Stats -->
-        <div class="flex flex-col gap-2 w-60 bg-gray-900/95 border border-gray-700 rounded-xl p-3 shadow-2xl backdrop-blur-md pointer-events-auto">
-            <div id="player-damage-anchor" class="absolute top-0 left-1/2 -translate-y-8 pointer-events-none w-0 h-0"></div>
-            
+        <div
+            class="flex flex-col gap-2 w-60 bg-gray-900/95 border border-gray-700 rounded-xl p-3 shadow-2xl backdrop-blur-md pointer-events-auto">
+            <div id="player-damage-anchor" class="absolute top-0 left-1/2 -translate-y-8 pointer-events-none w-0 h-0">
+            </div>
+
             <!-- Bars -->
             <div class="space-y-1.5">
                 <div>
-                    <div class="flex justify-between text-[9px] text-red-300 font-bold mb-0.5"><span data-i18n="hp">HP</span> <span id="player-hp-text">100/100</span></div>
-                    <div class="w-full h-2 bg-black rounded-full overflow-hidden border border-red-900/50"><div id="player-hp-bar" class="h-full bg-red-600 w-full transition-all duration-300"></div></div>
+                    <div class="flex justify-between text-[9px] text-red-300 font-bold mb-0.5"><span
+                            data-i18n="hp">HP</span> <span id="player-hp-text">100/100</span></div>
+                    <div class="w-full h-2 bg-black rounded-full overflow-hidden border border-red-900/50">
+                        <div id="player-hp-bar" class="h-full bg-red-600 w-full transition-all duration-300"></div>
+                    </div>
                 </div>
                 <div>
-                    <div class="flex justify-between text-[9px] text-yellow-300 font-bold mb-0.5"><span data-i18n="stm">STM</span> <span id="player-stam-text">100/100</span></div>
-                    <div class="w-full h-2 bg-black rounded-full overflow-hidden border border-yellow-900/50"><div id="player-stam-bar" class="h-full bg-yellow-500 w-full transition-all duration-300"></div></div>
+                    <div class="flex justify-between text-[9px] text-yellow-300 font-bold mb-0.5"><span
+                            data-i18n="stm">STM</span> <span id="player-stam-text">100/100</span></div>
+                    <div class="w-full h-2 bg-black rounded-full overflow-hidden border border-yellow-900/50">
+                        <div id="player-stam-bar" class="h-full bg-yellow-500 w-full transition-all duration-300"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- My Buffs -->
-            <div class="min-h-[18px] max-h-[36px] overflow-hidden text-[9px] flex flex-wrap gap-1 items-center bg-black/20 rounded px-1" id="player-active-buffs">
+            <div class="min-h-[18px] max-h-[36px] overflow-hidden text-[9px] flex flex-wrap gap-1 items-center bg-black/20 rounded px-1"
+                id="player-active-buffs">
                 <span class="text-gray-500 italic" data-i18n="no_items">No items</span>
             </div>
 
             <!-- Actions -->
             <div class="flex gap-2">
-                <button id="btn-attack" onclick="playerAttack()" class="flex-1 py-2 bg-gradient-to-br from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 border border-red-500 rounded-lg text-white font-rpg font-bold shadow-lg active:scale-95 transition-all flex flex-col items-center justify-center leading-none gap-0.5">
+                <button id="btn-attack" onclick="playerAttack()"
+                    class="flex-1 py-2 bg-gradient-to-br from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 border border-red-500 rounded-lg text-white font-rpg font-bold shadow-lg active:scale-95 transition-all flex flex-col items-center justify-center leading-none gap-0.5">
                     <span class="text-xs tracking-widest" data-i18n="attack">ATTACK</span>
                     <span class="text-[9px] font-mono text-red-200">DMG: <span id="atk-preview">0</span></span>
                 </button>
-                <button onclick="endTurn()" class="w-14 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg text-gray-300 font-bold text-[9px] uppercase active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5">
-                    <span class="material-symbols-outlined text-base">hourglass_bottom</span><span data-i18n="end_turn">END</span>
+                <button onclick="endTurn()"
+                    class="w-14 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg text-gray-300 font-bold text-[9px] uppercase active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5">
+                    <span class="material-symbols-outlined text-base">hourglass_bottom</span><span
+                        data-i18n="end_turn">END</span>
                 </button>
             </div>
         </div>
     </footer>
 
     <!-- OVERLAYS -->
-    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 px-6 py-2 bg-black/90 text-white rounded-full border border-gray-500 shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-[3000] font-rpg text-lg transform translate-y-4">Message</div>
-    
-    <div id="word-history-panel" class="fixed right-4 top-20 w-72 bg-gray-900/95 border border-gray-600 rounded-xl p-4 z-[2500] hidden shadow-2xl backdrop-blur-xl">
-        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2"><h3 class="font-rpg text-blue-300" data-i18n="word_history">Word History</h3><button onclick="toggleWordHistory()" class="text-gray-400 hover:text-white"><span class="material-symbols-outlined">close</span></button></div>
-        <div id="word-history-list" class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto scrollbar-hide text-sm text-gray-300"></div>
+    <div id="toast"
+        class="fixed top-20 left-1/2 -translate-x-1/2 px-6 py-2 bg-black/90 text-white rounded-full border border-gray-500 shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-[3000] font-rpg text-lg transform translate-y-4">
+        Message</div>
+
+    <div id="word-history-panel"
+        class="fixed right-4 top-20 w-72 bg-gray-900/95 border border-gray-600 rounded-xl p-4 z-[2500] hidden shadow-2xl backdrop-blur-xl">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+            <h3 class="font-rpg text-blue-300" data-i18n="word_history">Word History</h3><button
+                onclick="toggleWordHistory()" class="text-gray-400 hover:text-white"><span
+                    class="material-symbols-outlined">close</span></button>
+        </div>
+        <div id="word-history-list"
+            class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto scrollbar-hide text-sm text-gray-300"></div>
     </div>
 
     <!-- MAIN MENU -->
     <div id="main-menu" class="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
-         <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518133835878-5a93cc3f89e5?w=1920')] bg-cover bg-center opacity-20"></div>
-         <div class="relative z-10 text-center space-y-8 animate-float">
-             <div class="space-y-2">
-                 <h1 class="text-6xl md:text-8xl font-rpg text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-xl">Battleborn</h1>
-                 <h2 class="text-2xl font-rpg text-gray-400 tracking-[0.8em] uppercase">Crossword</h2>
-             </div>
-             <div class="w-80 mx-auto space-y-4">
-                 <input type="text" id="player-name-input" placeholder="Enter Name" class="w-full px-6 py-3 bg-gray-800/80 border border-gray-600 rounded-lg text-white text-center font-rpg focus:outline-none focus:border-yellow-500 transition-colors placeholder-gray-600" maxlength="12">
-                 <button onclick="startSinglePlayer()" class="w-full py-4 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all active:scale-95 flex items-center justify-center gap-2"><span class="material-symbols-outlined">person</span> <span data-i18n="singleplayer">SINGLEPLAYER</span></button>
-                 <button onclick="showMultiplayerLobby()" class="w-full py-4 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg border-2 border-red-400 shadow-[0_0_15px_rgba(220,38,38,0.5)] transition-all active:scale-95 flex items-center justify-center gap-2"><span class="material-symbols-outlined">group</span> <span data-i18n="multiplayer">MULTIPLAYER</span></button>
-                 <div class="flex gap-2">
-                     <button onclick="document.getElementById('main-menu').style.display='none'; document.getElementById('modal-howtoplay').classList.remove('hidden')" class="flex-1 py-2 bg-gray-800 border border-gray-600 rounded text-gray-300 text-xs hover:bg-gray-700" data-i18n="how_to_play">HOW TO PLAY</button>
-                     <button onclick="openSettings()" class="flex-1 py-2 bg-gray-800 border border-gray-600 rounded text-gray-300 text-xs hover:bg-gray-700" data-i18n="settings">SETTINGS</button>
-                 </div>
-             </div>
-             <div class="text-[10px] text-gray-600">v4.5 - Multiplayer Fixes</div>
-         </div>
+        <div
+            class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518133835878-5a93cc3f89e5?w=1920')] bg-cover bg-center opacity-20">
+        </div>
+        <div class="relative z-10 text-center space-y-8 animate-float">
+            <div class="space-y-2">
+                <h1
+                    class="text-6xl md:text-8xl font-rpg text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-xl">
+                    Battleborn</h1>
+                <h2 class="text-2xl font-rpg text-gray-400 tracking-[0.8em] uppercase">Crossword</h2>
+            </div>
+            <div class="w-80 mx-auto space-y-4">
+                <input type="text" id="player-name-input" placeholder="Enter Name"
+                    class="w-full px-6 py-3 bg-gray-800/80 border border-gray-600 rounded-lg text-white text-center font-rpg focus:outline-none focus:border-yellow-500 transition-colors placeholder-gray-600"
+                    maxlength="12">
+                <button onclick="startSinglePlayer()"
+                    class="w-full py-4 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all active:scale-95 flex items-center justify-center gap-2"><span
+                        class="material-symbols-outlined">person</span> <span
+                        data-i18n="singleplayer">SINGLEPLAYER</span></button>
+                <button onclick="showMultiplayerLobby()"
+                    class="w-full py-4 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg border-2 border-red-400 shadow-[0_0_15px_rgba(220,38,38,0.5)] transition-all active:scale-95 flex items-center justify-center gap-2"><span
+                        class="material-symbols-outlined">group</span> <span
+                        data-i18n="multiplayer">MULTIPLAYER</span></button>
+                <div class="flex gap-2">
+                    <button
+                        onclick="document.getElementById('main-menu').style.display='none'; document.getElementById('modal-howtoplay').classList.remove('hidden')"
+                        class="flex-1 py-2 bg-gray-800 border border-gray-600 rounded text-gray-300 text-xs hover:bg-gray-700"
+                        data-i18n="how_to_play">HOW TO PLAY</button>
+                    <button onclick="openSettings()"
+                        class="flex-1 py-2 bg-gray-800 border border-gray-600 rounded text-gray-300 text-xs hover:bg-gray-700"
+                        data-i18n="settings">SETTINGS</button>
+                </div>
+            </div>
+            <div class="text-[10px] text-gray-600">v4.5 - Multiplayer Fixes</div>
+        </div>
     </div>
 
     <!-- MODALS -->
-    
+
     <!-- SURRENDER CONFIRM MODAL -->
-    <div id="modal-surrender" style="z-index: 3000;" class="fixed inset-0 z-[3000] bg-black/90 hidden flex items-center justify-center p-4">
-        <div class="bg-gray-800 border border-red-600/50 rounded-lg max-w-sm w-full p-6 relative text-center shadow-[0_0_20px_rgba(220,38,38,0.3)]">
+    <div id="modal-surrender" style="z-index: 3000;"
+        class="fixed inset-0 z-[3000] bg-black/90 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-gray-800 border border-red-600/50 rounded-lg max-w-sm w-full p-6 relative text-center shadow-[0_0_20px_rgba(220,38,38,0.3)]">
             <h3 class="text-2xl font-rpg text-red-400 mb-4" data-i18n="surrender">Surrender</h3>
             <p class="text-gray-300 mb-6" data-i18n="surrender_confirm">Are you sure you want to surrender?</p>
             <div class="flex gap-4 justify-center">
-                <button onclick="confirmSurrender()" class="px-6 py-2 bg-red-700 hover:bg-red-600 text-white rounded font-bold transition-all">YES</button>
-                <button onclick="closeSurrenderModal()" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded font-bold transition-all">NO</button>
+                <button onclick="confirmSurrender()"
+                    class="px-6 py-2 bg-red-700 hover:bg-red-600 text-white rounded font-bold transition-all">YES</button>
+                <button onclick="closeSurrenderModal()"
+                    class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded font-bold transition-all">NO</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-multiplayer" class="fixed inset-0 z-[2000] bg-black/80 flex items-center justify-center backdrop-blur-sm hidden">
+    <div id="modal-multiplayer"
+        class="fixed inset-0 z-[2000] bg-black/80 flex items-center justify-center backdrop-blur-sm hidden">
         <div class="bg-gray-800 border border-gray-600 rounded-xl max-w-md w-full p-8 relative shadow-2xl">
-            <button onclick="document.getElementById('modal-multiplayer').classList.add('hidden'); document.getElementById('main-menu').style.display='flex';" class="absolute top-4 right-4 text-gray-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
-            <h2 class="text-3xl font-rpg text-yellow-400 mb-6 text-center" data-i18n="multiplayer_lobby">Multiplayer Lobby</h2>
+            <button
+                onclick="document.getElementById('modal-multiplayer').classList.add('hidden'); document.getElementById('main-menu').style.display='flex';"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white"><span
+                    class="material-symbols-outlined">close</span></button>
+            <h2 class="text-3xl font-rpg text-yellow-400 mb-6 text-center" data-i18n="multiplayer_lobby">Multiplayer
+                Lobby</h2>
             <div id="modal-content-area" class="space-y-6">
-                <p id="modal-prompt-text" class="text-gray-300 text-center text-sm" data-i18n="create_join_prompt">Create a new room or join an existing one.</p>
+                <p id="modal-prompt-text" class="text-gray-300 text-center text-sm" data-i18n="create_join_prompt">
+                    Create a new room or join an existing one.</p>
                 <div id="modal-buttons" class="space-y-4">
-                    <button onclick="createGame()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-white shadow-lg transition-all" data-i18n="create_game">CREATE ROOM</button>
+                    <button onclick="createGame()"
+                        class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-white shadow-lg transition-all"
+                        data-i18n="create_game">CREATE ROOM</button>
                     <div class="flex gap-2">
-                        <input type="text" id="room-id-input" placeholder="Room ID" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 text-white focus:border-blue-500 outline-none">
-                        <button onclick="joinGame()" class="px-6 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-white shadow-lg" data-i18n="join_game">JOIN</button>
+                        <input type="text" id="room-id-input" placeholder="Room ID"
+                            class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 text-white focus:border-blue-500 outline-none">
+                        <button onclick="joinGame()"
+                            class="px-6 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-white shadow-lg"
+                            data-i18n="join_game">JOIN</button>
                     </div>
                 </div>
                 <div id="room-id-display" class="hidden space-y-4 text-center">
                     <div class="bg-black/50 p-4 rounded-lg border border-gray-700">
                         <div class="text-xs text-gray-500 mb-1" data-i18n="room_id">ROOM ID</div>
-                        <div class="text-3xl font-mono text-yellow-400 tracking-wider cursor-pointer hover:text-yellow-300" onclick="copyRoomId()" id="room-id-text">ABCD</div>
+                        <div class="text-3xl font-mono text-yellow-400 tracking-wider cursor-pointer hover:text-yellow-300"
+                            onclick="copyRoomId()" id="room-id-text">ABCD</div>
                         <div class="text-[10px] text-gray-600 mt-1" data-i18n="click_copy">(Click to copy)</div>
                     </div>
-                    <div id="waiting-text" class="text-blue-400 animate-pulse flex items-center justify-center gap-2"><span class="spinner w-4 h-4 border-2"></span> <span data-i18n="waiting">Waiting for player...</span></div>
+                    <div id="waiting-text" class="text-blue-400 animate-pulse flex items-center justify-center gap-2">
+                        <span class="spinner w-4 h-4 border-2"></span> <span data-i18n="waiting">Waiting for
+                            player...</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="game-over-screen" class="hidden fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center space-y-8">
+    <div id="game-over-screen"
+        class="hidden fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center space-y-8">
         <h2 id="game-over-text" class="text-7xl font-rpg drop-shadow-[0_0_25px_rgba(255,255,255,0.5)]">VICTORY</h2>
         <div class="flex gap-4">
-            <button id="rematch-button" onclick="requestRematch()" class="px-8 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all" data-i18n="play_again">PLAY AGAIN</button>
-            <button onclick="returnToMainMenu()" class="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all" data-i18n="back_main_menu">MAIN MENU</button>
+            <button id="rematch-button" onclick="requestRematch()"
+                class="px-8 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all"
+                data-i18n="play_again">PLAY AGAIN</button>
+            <button onclick="returnToMainMenu()"
+                class="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all"
+                data-i18n="back_main_menu">MAIN MENU</button>
         </div>
     </div>
 
-    <div id="loading-overlay" class="fixed inset-0 bg-black/90 z-[4000] hidden items-center justify-center flex-col gap-4">
-        <div class="spinner"></div><div class="text-white font-rpg tracking-widest" id="loading-text">LOADING</div>
+    <div id="loading-overlay"
+        class="fixed inset-0 bg-black/90 z-[4000] hidden items-center justify-center flex-col gap-4">
+        <div class="spinner"></div>
+        <div class="text-white font-rpg tracking-widest" id="loading-text">LOADING</div>
     </div>
 
     <!-- SETTINGS & HOW TO PLAY (Hidden by default) -->
     <div id="modal-settings" class="fixed inset-0 z-[2000] bg-black/90 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-600 rounded-lg max-w-sm w-full p-6 relative">
-            <button onclick="closeSettings()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+            <button onclick="closeSettings()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><span
+                    class="material-symbols-outlined">close</span></button>
             <h2 class="text-2xl font-rpg text-white mb-6 text-center" data-i18n="settings">Settings</h2>
             <div class="space-y-6">
-                 <!-- Master Volume -->
-                 <div>
-                    <label class="flex justify-between text-gray-300 text-sm mb-2"><span data-i18n="master_volume">Master Volume</span> <span id="vol-val" class="text-yellow-400">50%</span></label>
-                    <input type="range" id="vol-slider" min="0" max="100" value="50" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer" oninput="updateSetting('volume', this.value)">
+                <!-- Master Volume -->
+                <div>
+                    <label class="flex justify-between text-gray-300 text-sm mb-2"><span
+                            data-i18n="master_volume">Master Volume</span> <span id="vol-val"
+                            class="text-yellow-400">50%</span></label>
+                    <input type="range" id="vol-slider" min="0" max="100" value="50"
+                        class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                        oninput="updateSetting('volume', this.value)">
                 </div>
                 <!-- Music Volume (ADDED BACK) -->
-                 <div>
-                    <label class="flex justify-between text-gray-300 text-sm mb-2"><span data-i18n="music_volume">Music Volume</span> <span id="music-vol-val" class="text-yellow-400">30%</span></label>
-                    <input type="range" id="music-vol-slider" min="0" max="100" value="30" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer" oninput="updateSetting('musicVolume', this.value)">
+                <div>
+                    <label class="flex justify-between text-gray-300 text-sm mb-2"><span data-i18n="music_volume">Music
+                            Volume</span> <span id="music-vol-val" class="text-yellow-400">30%</span></label>
+                    <input type="range" id="music-vol-slider" min="0" max="100" value="30"
+                        class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                        oninput="updateSetting('musicVolume', this.value)">
                 </div>
                 <!-- UI Scale -->
                 <div>
-                     <label class="flex justify-between text-gray-300 text-sm mb-2"><span data-i18n="ui-scale">UI Scale</span> <span id="ui-scale-value" class="text-yellow-400">100%</span></label>
-                     <input type="range" id="ui-scale-slider" min="0.5" max="1.5" step="0.1" value="1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer" oninput="updateSetting('scale', this.value)">
+                    <label class="flex justify-between text-gray-300 text-sm mb-2"><span data-i18n="ui-scale">UI
+                            Scale</span> <span id="ui-scale-value" class="text-yellow-400">100%</span></label>
+                    <input type="range" id="ui-scale-slider" min="0.5" max="1.5" step="0.1" value="1"
+                        class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                        oninput="updateSetting('scale', this.value)">
                 </div>
-                 <div class="flex justify-between items-center"><span class="text-gray-300 text-sm" data-i18n="language">Language</span><button onclick="toggleLanguage()" class="px-3 py-1 bg-gray-700 rounded border border-gray-500 text-xs font-bold text-yellow-400 w-12 text-center" id="lang-display">TH</button></div>
+                <div class="flex justify-between items-center"><span class="text-gray-300 text-sm"
+                        data-i18n="language">Language</span><button onclick="toggleLanguage()"
+                        class="px-3 py-1 bg-gray-700 rounded border border-gray-500 text-xs font-bold text-yellow-400 w-12 text-center"
+                        id="lang-display">TH</button></div>
             </div>
-            <button onclick="closeSettings()" class="mt-8 w-full py-2 bg-blue-600 text-white rounded font-bold" data-i18n="done">Done</button>
+            <button onclick="closeSettings()" class="mt-8 w-full py-2 bg-blue-600 text-white rounded font-bold"
+                data-i18n="done">Done</button>
         </div>
     </div>
 
     <div id="modal-howtoplay" class="fixed inset-0 z-[2000] bg-black/90 hidden flex items-center justify-center p-4">
-        <div class="bg-gray-800 border border-gray-600 rounded-lg max-w-2xl w-full p-6 relative max-h-[80vh] flex flex-col">
-             <button onclick="document.getElementById('modal-howtoplay').classList.add('hidden'); if(!localPlayerKey) document.getElementById('main-menu').style.display='flex'" class="absolute top-4 right-4 text-gray-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
-             <h2 class="text-2xl font-rpg text-yellow-400 mb-4 text-center shrink-0" data-i18n="how_to_play">How to Play</h2>
-             <div class="overflow-y-auto pr-2 space-y-4 text-sm text-gray-300">
-                  <p><b class="text-white" data-i18n="howto_step1_title">1. Create Words:</b> <span data-i18n="howto_step1_desc">Select letters to form valid English words (min 2 letters). Longer words give more Word Power.</span></p>
-                  <p><b class="text-white" data-i18n="howto_step2_title">2. Attack & Defend:</b> <span data-i18n="howto_step2_desc">Use accumulated Power to Attack the opponent.</span></p>
-                  <p><b class="text-white" data-i18n="howto_step3_title">3. Use Items:</b> <span data-i18n="howto_step3_desc">Spend Power to use cards: Weapons, Spells, Potions, Artifacts.</span></p>
-                  <p><b class="text-white" data-i18n="howto_step4_title">4. Salvage:</b> <span data-i18n="howto_step4_desc">Enable Salvage Mode to destroy unwanted cards and gain Stamina.</span></p>
-                  <p><b class="text-white" data-i18n="howto_step5_title">5. Turn System:</b> <span data-i18n="howto_step5_desc">You have 90 seconds per turn.</span></p>
-                  <p><b class="text-white" data-i18n="howto_step6_title">6. Win Condition:</b> <span data-i18n="howto_step6_desc">Reduce your opponent's HP to 0 to win!</span></p>
-             </div>
+        <div
+            class="bg-gray-800 border border-gray-600 rounded-lg max-w-2xl w-full p-6 relative max-h-[80vh] flex flex-col">
+            <button
+                onclick="document.getElementById('modal-howtoplay').classList.add('hidden'); if(!localPlayerKey) document.getElementById('main-menu').style.display='flex'"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white"><span
+                    class="material-symbols-outlined">close</span></button>
+            <h2 class="text-2xl font-rpg text-yellow-400 mb-4 text-center shrink-0" data-i18n="how_to_play">How to Play
+            </h2>
+            <div class="overflow-y-auto pr-2 space-y-4 text-sm text-gray-300">
+                <p><b class="text-white" data-i18n="howto_step1_title">1. Create Words:</b> <span
+                        data-i18n="howto_step1_desc">Select letters to form valid English words (min 2 letters). Longer
+                        words give more Word Power.</span></p>
+                <p><b class="text-white" data-i18n="howto_step2_title">2. Attack & Defend:</b> <span
+                        data-i18n="howto_step2_desc">Use accumulated Power to Attack the opponent.</span></p>
+                <p><b class="text-white" data-i18n="howto_step3_title">3. Use Items:</b> <span
+                        data-i18n="howto_step3_desc">Spend Power to use cards: Weapons, Spells, Potions,
+                        Artifacts.</span></p>
+                <p><b class="text-white" data-i18n="howto_step4_title">4. Salvage:</b> <span
+                        data-i18n="howto_step4_desc">Enable Salvage Mode to destroy unwanted cards and gain
+                        Stamina.</span></p>
+                <p><b class="text-white" data-i18n="howto_step5_title">5. Turn System:</b> <span
+                        data-i18n="howto_step5_desc">You have 90 seconds per turn.</span></p>
+                <p><b class="text-white" data-i18n="howto_step6_title">6. Win Condition:</b> <span
+                        data-i18n="howto_step6_desc">Reduce your opponent's HP to 0 to win!</span></p>
+            </div>
         </div>
     </div>
 
-    <script src="items.js"></script>
+
     <script>
         const ITEM_DATABASE = {
             WEAPONS: [
@@ -600,14 +810,14 @@
             shuffle: new Audio('https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.m4a'),
             draw: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.m4a')
         };
-        const BGM = new Audio('https://assets.mixkit.co/active_storage/stock_music/536/536-preview.mp3'); 
+        const BGM = new Audio('https://assets.mixkit.co/active_storage/stock_music/536/536-preview.mp3');
         BGM.loop = true;
 
-        function playSound(name) { 
-            if(SFX[name]) { 
-                SFX[name].volume = userSettings.volume; SFX[name].currentTime=0; 
-                SFX[name].play().catch(() => {});
-            } 
+        function playSound(name) {
+            if (SFX[name]) {
+                SFX[name].volume = userSettings.volume; SFX[name].currentTime = 0;
+                SFX[name].play().catch(() => { });
+            }
         }
 
         function toggleChatCollapse() {
@@ -625,15 +835,15 @@
         }
 
         function saveSettings() { localStorage.setItem('gameSettings', JSON.stringify(userSettings)); }
-        function loadSettings() { const s = localStorage.getItem('gameSettings'); if(s) userSettings = {...userSettings, ...JSON.parse(s)}; }
+        function loadSettings() { const s = localStorage.getItem('gameSettings'); if (s) userSettings = { ...userSettings, ...JSON.parse(s) }; }
         function applySettings() { document.documentElement.style.setProperty('--ui-scale', userSettings.uiScale); BGM.volume = userSettings.musicVolume; }
-        
+
         function updateSetting(type, val) {
             if (type === 'volume') {
                 userSettings.volume = val / 100;
                 document.getElementById('vol-val').innerText = Math.round(userSettings.volume * 100) + '%';
                 // Apply immediately
-                for(let key in SFX) SFX[key].volume = userSettings.volume;
+                for (let key in SFX) SFX[key].volume = userSettings.volume;
             } else if (type === 'musicVolume') {
                 userSettings.musicVolume = val / 100;
                 document.getElementById('music-vol-val').innerText = Math.round(userSettings.musicVolume * 100) + '%';
@@ -644,16 +854,16 @@
                 applySettings();
             }
         }
-        
-        function openSettings() { 
-            document.getElementById('modal-settings').classList.remove('hidden'); 
+
+        function openSettings() {
+            document.getElementById('modal-settings').classList.remove('hidden');
             // Sync slider values
             document.getElementById('vol-val').innerText = Math.round(userSettings.volume * 100) + '%';
             document.getElementById('vol-slider').value = Math.round(userSettings.volume * 100);
-            
+
             document.getElementById('music-vol-val').innerText = Math.round(userSettings.musicVolume * 100) + '%';
             document.getElementById('music-vol-slider').value = Math.round(userSettings.musicVolume * 100);
-            
+
             document.getElementById('ui-scale-value').innerText = Math.round(userSettings.uiScale * 100) + '%';
             document.getElementById('ui-scale-slider').value = userSettings.uiScale;
         }
@@ -704,112 +914,108 @@
             resetGameStateLogic();
             gameState.game.status = 'WAITING';
             const { error } = await supabaseClient.from('games').insert([{ id: roomId, game_state: gameState }]);
-            if(error) { showToast(getText('network_error'), "text-red-400"); return; }
+            if (error) { showToast(getText('network_error'), "text-red-400"); return; }
             listenForGameStateChanges(roomId);
             document.getElementById('room-id-text').innerText = roomId;
             document.getElementById('room-id-display').classList.remove('hidden');
             document.getElementById('modal-buttons').style.display = 'none';
-            BGM.play().catch(()=>{});
+            BGM.play().catch(() => { });
         }
 
         async function joinGame() {
             const roomId = document.getElementById('room-id-input').value.trim();
-            if(!roomId) return showToast(getText('enter_room') + "!");
+            if (!roomId) return showToast(getText('enter_room') + "!");
             const { data, error } = await supabaseClient.from('games').select('game_state').eq('id', roomId).single();
-            if(error || !data) return showToast(getText('word_not_found'), "text-red-400");
-            
+            if (error || !data) return showToast(getText('word_not_found'), "text-red-400");
+
             localPlayerKey = 'player2';
             gameState = data.game_state;
             gameState.roomId = roomId;
-            gameState.players.player2.deck = Array(30).fill(null).map(()=>ITEMS[Math.floor(Math.random()*ITEMS.length)]);
+            gameState.players.player2.deck = Array(30).fill(null).map(() => ITEMS[Math.floor(Math.random() * ITEMS.length)]);
             gameState.game.status = 'PLAYING';
-            
+
             listenForGameStateChanges(roomId);
             await updateSupabaseState();
             document.getElementById('modal-multiplayer').style.display = 'none';
             startTurn();
-            BGM.play().catch(()=>{});
+            BGM.play().catch(() => { });
         }
 
         function copyRoomId() {
             const text = document.getElementById('room-id-text').innerText;
             const temp = document.createElement("textarea");
             temp.value = text; document.body.appendChild(temp); temp.select();
-            try { document.execCommand("copy"); showToast('Copied!', 'text-green-400'); } catch(e){}
+            try { document.execCommand("copy"); showToast('Copied!', 'text-green-400'); } catch (e) { }
             document.body.removeChild(temp);
         }
 
         function listenForGameStateChanges(roomId) {
-            if(channel) supabaseClient.removeChannel(channel);
-            if(pollingInterval) clearInterval(pollingInterval);
+            if (channel) supabaseClient.removeChannel(channel);
+            if (pollingInterval) clearInterval(pollingInterval);
             channel = supabaseClient.channel(`game-${roomId}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `id=eq.${roomId}` }, (payload) => handleGameUpdate(payload.new.game_state)).subscribe();
             pollingInterval = setInterval(async () => {
                 const { data } = await supabaseClient.from('games').select('game_state').eq('id', roomId).single();
-                if(data) handleGameUpdate(data.game_state);
+                if (data) handleGameUpdate(data.game_state);
             }, 2000);
         }
 
         function handleGameUpdate(newData) {
             if (!newData) return;
-            const isGameStarting = localPlayerKey === 'player1' && gameState.game.status === 'WAITING' && newData.game.status === 'PLAYING';
-            
+            // Enhanced Game Start Detection: Check if status changed from WAITING to PLAYING (for both players)
+            const isGameStarting = (gameState.game.status === 'WAITING' && newData.game.status === 'PLAYING');
+
             // Check for new word in multiplayer
             const oldHistory = gameState.game.wordHistory || [];
             const newHistory = newData.game.wordHistory || [];
             if (newHistory.length > 0 && (newHistory.length > oldHistory.length || (oldHistory.length > 0 && newHistory[0].timestamp !== oldHistory[0].timestamp))) {
                 const latest = newHistory[0];
                 if (latest.player !== localPlayerKey) {
-                     showResultPopup(latest.word, latest.ipa, latest.thai, latest.trans);
+                    showResultPopup(latest.word, latest.ipa, latest.thai, latest.trans);
                 }
             }
 
             // AUTO DRAW Check
             const isMyNewTurn = newData.game.currentPlayer === localPlayerKey && gameState.game.currentPlayer !== localPlayerKey;
 
-            // Preserve Local
+            // Preserve Local (SKIP IF GAME STARTING)
+            // If game is starting, we WANT to accept the server state (deck/hand/letters) generated by P1
             const myHand = gameState.players[localPlayerKey].hand;
             const myDeck = gameState.players[localPlayerKey].deck;
             const mySel = gameState.game.selectedIndices;
-            
-            // Preserve Chat
-            // Note: We use the server's chat array entirely to ensure sync
-            
+
+            // Force Chat Update if changed (Real-time Fix)
+            if (newData.game.chat && newData.game.chat.length > 0) {
+                const newLast = newData.game.chat[newData.game.chat.length - 1];
+                const oldLast = gameState.game.chat && gameState.game.chat.length > 0 ? gameState.game.chat[gameState.game.chat.length - 1] : null;
+                // If history length diff or last msg diff, render
+                if (!oldLast || newLast.text !== oldLast.text || newLast.timestamp !== oldLast.timestamp || newData.game.chat.length !== (gameState.game.chat ? gameState.game.chat.length : 0)) {
+                    renderChat(newData.game.chat);
+                }
+            }
+
             gameState = newData;
-            
-            // Restore local hand/deck unless game reset
-            if (gameState.players[localPlayerKey]) {
+
+            // Restore local hand/deck unless game start
+            if (gameState.players[localPlayerKey] && !isGameStarting) {
                 gameState.players[localPlayerKey].hand = myHand;
                 gameState.players[localPlayerKey].deck = myDeck;
+                gameState.game.selectedIndices = mySel;
             }
-            gameState.game.selectedIndices = mySel;
 
             if (isMyNewTurn) {
                 drawCardsUntilFull();
             }
 
-            if(isGameStarting) {
+            if (isGameStarting) {
                 document.getElementById('modal-multiplayer').style.display = 'none';
                 showToast(getText('player_2_joined'), "text-green-400");
-                startTurn();
+                updateUI();
             }
             updateUI();
         }
-        
-        function drawCardsUntilFull() {
-             const p = gameState.players[localPlayerKey];
-             let drawn = false;
-             while(p.hand.length < 5 && p.deck.length > 0) {
-                 p.hand.push(p.deck.pop());
-                 drawn = true;
-             }
-             if (drawn) {
-                 playSound('select');
-                 // Local state updated, no need to push full state yet, wait for action
-             }
-        }
 
         async function updateSupabaseState() {
-            if(gameMode === 'multi' && gameState.roomId) await supabaseClient.from('games').update({ game_state: gameState }).eq('id', gameState.roomId);
+            if (gameMode === 'multi' && gameState.roomId) await supabaseClient.from('games').update({ game_state: gameState }).eq('id', gameState.roomId);
         }
 
         function resetGameStateLogic() {
@@ -817,8 +1023,8 @@
             gameState.players.player1 = { hp: MAX_HP, stamina: MAX_STAMINA, deck: [], hand: [], activeBuffs: 0, permanentBuffs: 0, wordPower: 0, name: "Player 1" };
             gameState.players.player2 = { hp: MAX_HP, stamina: MAX_STAMINA, deck: [], hand: [], activeBuffs: 0, permanentBuffs: 0, wordPower: 0, name: "Player 2" };
             gameState.game = { turn: 1, letterPool: [], selectedIndices: [], wordHistory: [], isOver: false, timer: TURN_TIME, turnEndTime: null, currentPlayer: startP, rematchVoted: [], status: gameMode === 'single' ? 'PLAYING' : 'WAITING', chat: [] };
-            
-            const deck = () => Array(40).fill(null).map(()=>ITEMS[Math.floor(Math.random()*ITEMS.length)]);
+
+            const deck = () => Array(40).fill(null).map(() => ITEMS[Math.floor(Math.random() * ITEMS.length)]);
             gameState.players.player1.deck = deck();
             if (gameMode === 'single') gameState.players.player2.deck = deck();
         }
@@ -826,13 +1032,13 @@
         function refillLetters() {
             const currentLen = gameState.game.letterPool.length;
             const targetLen = Math.floor(Math.random() * 6) + 10; // 10-15 letters
-            
+
             if (currentLen < 7) {
                 const vowels = "AEIOU";
                 const consonants = "BCDFGHJKLMNPQRSTVWXYZ";
                 const needed = targetLen - currentLen;
-                
-                for(let i=0; i<needed; i++) {
+
+                for (let i = 0; i < needed; i++) {
                     const isVowel = Math.random() < 0.35;
                     const source = isVowel ? vowels : consonants;
                     gameState.game.letterPool.push(source[Math.floor(Math.random() * source.length)]);
@@ -848,126 +1054,126 @@
             // Random length between 10 and 15
             const length = Math.floor(Math.random() * 6) + 10;
             const pool = [];
-            
+
             // Guarantee at least one vowel
             pool.push(vowels[Math.floor(Math.random() * vowels.length)]);
-            
+
             // Fill the rest randomly
             for (let i = 1; i < length; i++) {
                 const isVowel = Math.random() < 0.35; // 35% chance for more vowels
                 const source = isVowel ? vowels : consonants;
                 pool.push(source[Math.floor(Math.random() * source.length)]);
             }
-            
+
             return pool.sort(() => Math.random() - 0.5);
         }
 
         function startSinglePlayer() {
-             localPlayerKey = 'player1'; gameMode = 'single';
-             document.getElementById('main-menu').style.display = 'none';
-             resetGameStateLogic();
-             
-             // Gen Letters
-             gameState.game.letterPool = generateLetters();
-             
-             gameState.game.currentPlayer = 'player1';
-             
-             // Draw initial cards
-             startTurn(); 
-             
-             startGlobalTimer();
-             BGM.play().catch(()=>{});
+            localPlayerKey = 'player1'; gameMode = 'single';
+            document.getElementById('main-menu').style.display = 'none';
+            resetGameStateLogic();
+
+            // Gen Letters
+            gameState.game.letterPool = generateLetters();
+
+            gameState.game.currentPlayer = 'player1';
+
+            // Draw initial cards
+            startTurn();
+
+            startGlobalTimer();
+            BGM.play().catch(() => { });
         }
 
         function updateUI() {
-             if (!localPlayerKey && document.getElementById('main-menu').style.display !== 'none') return;
-             const p = gameState.players[localPlayerKey];
-             const opp = gameState.players[localPlayerKey === 'player1' ? 'player2' : 'player1'];
-             
-             document.getElementById('turn-display').innerText = gameState.game.turn;
-             document.getElementById('timer-display').innerText = gameState.game.timer;
-             document.getElementById('opponent-name').innerText = opp.name;
-             document.getElementById('opponent-hp-text').innerText = `${opp.hp}/${MAX_HP}`;
-             document.getElementById('opponent-hp-bar').style.width = `${(opp.hp/MAX_HP)*100}%`;
-             document.getElementById('opponent-active-buffs').innerHTML = (opp.permanentBuffs > 0 ? `<span class="text-red-300 border border-red-700 px-1 rounded">+${opp.permanentBuffs} ATK</span>` : '') || `<span class="text-gray-500 italic">${getText('no_buffs')}</span>`;
-             
-             document.getElementById('word-power').innerText = p.wordPower;
-             
-             const slot = document.getElementById('word-slot');
-             slot.innerHTML = '';
-             if(gameState.game.selectedIndices.length===0) slot.innerHTML = `<span class="text-gray-500 text-sm animate-pulse font-rpg">${getText('select_letters')}</span>`;
-             else gameState.game.selectedIndices.forEach(idx => {
-                 const b = document.createElement('button');
-                 b.className = "w-10 h-12 bg-gray-800 border border-gray-500 rounded text-white font-bold text-lg hover:bg-red-900/50";
-                 b.innerText = gameState.game.letterPool[idx];
-                 b.onclick = () => toggleLetterSelection(idx);
-                 slot.appendChild(b);
-             });
-             
-             const rack = document.getElementById('letter-rack');
-             rack.innerHTML = '';
-             if(gameState.game.letterPool) gameState.game.letterPool.forEach((l, idx) => {
-                 const isSel = gameState.game.selectedIndices.includes(idx);
-                 const d = document.createElement('div');
-                 d.className = `w-12 h-12 flex items-center justify-center text-xl font-bold rounded cursor-pointer transition-all shadow-md ${isSel ? 'bg-blue-900/50 border-2 border-blue-400 text-blue-300 scale-95 opacity-50' : 'bg-gray-700 border-2 border-gray-600 hover:bg-gray-600 hover:-translate-y-1'}`;
-                 d.innerText = l;
-                 d.onclick = () => toggleLetterSelection(idx);
-                 rack.appendChild(d);
-             });
-             
-             document.getElementById('player-hp-text').innerText = `${p.hp}/${MAX_HP}`;
-             document.getElementById('player-hp-bar').style.width = `${(p.hp/MAX_HP)*100}%`;
-             document.getElementById('player-stam-text').innerText = `${p.stamina}/${MAX_STAMINA}`;
-             document.getElementById('player-stam-bar').style.width = `${(p.stamina/MAX_STAMINA)*100}%`;
-             document.getElementById('deck-count').innerText = p.deck.length;
-             document.getElementById('atk-preview').innerText = p.wordPower + p.activeBuffs + p.permanentBuffs;
-             
-             let myBHtml = '';
-             if(p.equippedItems) p.equippedItems.forEach(i => myBHtml += `<span class="material-symbols-outlined text-xs ${i.type==='WEAPON'?'text-red-400':'text-yellow-400'}" title="${i.name}">${i.icon}</span>`);
-             if(p.permanentBuffs > 0) myBHtml += `<span class="ml-2 text-red-300 font-bold">+${p.permanentBuffs}</span>`;
-             document.getElementById('player-active-buffs').innerHTML = myBHtml || `<span class="text-gray-500 italic">${getText('no_items')}</span>`;
+            if (!localPlayerKey && document.getElementById('main-menu').style.display !== 'none') return;
+            const p = gameState.players[localPlayerKey];
+            const opp = gameState.players[localPlayerKey === 'player1' ? 'player2' : 'player1'];
 
-             renderHand();
-             
-             // Chat Sync Display
-             if (gameState.game.chat) {
-                 const currentChatLen = document.getElementById('chat-messages').children.length;
-                 if (gameState.game.chat.length > currentChatLen) {
-                     renderChat(gameState.game.chat);
-                 }
-             }
-             
-             updateWordHistoryList();
+            document.getElementById('turn-display').innerText = gameState.game.turn;
+            document.getElementById('timer-display').innerText = gameState.game.timer;
+            document.getElementById('opponent-name').innerText = opp.name;
+            document.getElementById('opponent-hp-text').innerText = `${opp.hp}/${MAX_HP}`;
+            document.getElementById('opponent-hp-bar').style.width = `${(opp.hp / MAX_HP) * 100}%`;
+            document.getElementById('opponent-active-buffs').innerHTML = (opp.permanentBuffs > 0 ? `<span class="text-red-300 border border-red-700 px-1 rounded">+${opp.permanentBuffs} ATK</span>` : '') || `<span class="text-gray-500 italic">${getText('no_buffs')}</span>`;
 
-             const isMyTurn = gameState.game.currentPlayer === localPlayerKey && !gameState.game.isOver;
-             const confirmBtn = document.getElementById('btn-confirm');
-             confirmBtn.disabled = !isMyTurn || gameState.game.selectedIndices.length < 2;
-             confirmBtn.className = confirmBtn.disabled ? "h-12 px-8 bg-gray-700 text-gray-400 font-bold text-xl rounded-lg border-2 border-gray-600 cursor-not-allowed" : "h-12 px-8 bg-green-700 hover:bg-green-600 border-b-4 border-green-900 text-white font-rpg font-bold text-xl rounded-lg shadow-lg active:border-b-0 active:translate-y-1 transition-all";
-             // Update button text based on turn state
-             if (!isMyTurn) {
+            document.getElementById('word-power').innerText = p.wordPower;
+
+            const slot = document.getElementById('word-slot');
+            slot.innerHTML = '';
+            if (gameState.game.selectedIndices.length === 0) slot.innerHTML = `<span class="text-gray-500 text-sm animate-pulse font-rpg">${getText('select_letters')}</span>`;
+            else gameState.game.selectedIndices.forEach(idx => {
+                const b = document.createElement('button');
+                b.className = "w-10 h-12 bg-gray-800 border border-gray-500 rounded text-white font-bold text-lg hover:bg-red-900/50";
+                b.innerText = gameState.game.letterPool[idx];
+                b.onclick = () => toggleLetterSelection(idx);
+                slot.appendChild(b);
+            });
+
+            const rack = document.getElementById('letter-rack');
+            rack.innerHTML = '';
+            if (gameState.game.letterPool) gameState.game.letterPool.forEach((l, idx) => {
+                const isSel = gameState.game.selectedIndices.includes(idx);
+                const d = document.createElement('div');
+                d.className = `w-12 h-12 flex items-center justify-center text-xl font-bold rounded cursor-pointer transition-all shadow-md ${isSel ? 'bg-blue-900/50 border-2 border-blue-400 text-blue-300 scale-95 opacity-50' : 'bg-gray-700 border-2 border-gray-600 hover:bg-gray-600 hover:-translate-y-1'}`;
+                d.innerText = l;
+                d.onclick = () => toggleLetterSelection(idx);
+                rack.appendChild(d);
+            });
+
+            document.getElementById('player-hp-text').innerText = `${p.hp}/${MAX_HP}`;
+            document.getElementById('player-hp-bar').style.width = `${(p.hp / MAX_HP) * 100}%`;
+            document.getElementById('player-stam-text').innerText = `${p.stamina}/${MAX_STAMINA}`;
+            document.getElementById('player-stam-bar').style.width = `${(p.stamina / MAX_STAMINA) * 100}%`;
+            document.getElementById('deck-count').innerText = p.deck.length;
+            document.getElementById('atk-preview').innerText = p.wordPower + p.activeBuffs + p.permanentBuffs;
+
+            let myBHtml = '';
+            if (p.equippedItems) p.equippedItems.forEach(i => myBHtml += `<span class="material-symbols-outlined text-xs ${i.type === 'WEAPON' ? 'text-red-400' : 'text-yellow-400'}" title="${i.name}">${i.icon}</span>`);
+            if (p.permanentBuffs > 0) myBHtml += `<span class="ml-2 text-red-300 font-bold">+${p.permanentBuffs}</span>`;
+            document.getElementById('player-active-buffs').innerHTML = myBHtml || `<span class="text-gray-500 italic">${getText('no_items')}</span>`;
+
+            renderHand();
+
+            // Chat Sync Display
+            if (gameState.game.chat) {
+                const currentChatLen = document.getElementById('chat-messages').children.length;
+                if (gameState.game.chat.length > currentChatLen) {
+                    renderChat(gameState.game.chat);
+                }
+            }
+
+            updateWordHistoryList();
+
+            const isMyTurn = gameState.game.currentPlayer === localPlayerKey && !gameState.game.isOver;
+            const confirmBtn = document.getElementById('btn-confirm');
+            confirmBtn.disabled = !isMyTurn || gameState.game.selectedIndices.length < 2;
+            confirmBtn.className = confirmBtn.disabled ? "h-12 px-8 bg-gray-700 text-gray-400 font-bold text-xl rounded-lg border-2 border-gray-600 cursor-not-allowed" : "h-12 px-8 bg-green-700 hover:bg-green-600 border-b-4 border-green-900 text-white font-rpg font-bold text-xl rounded-lg shadow-lg active:border-b-0 active:translate-y-1 transition-all";
+            // Update button text based on turn state
+            if (!isMyTurn) {
                 confirmBtn.innerText = getText('opponent_turn'); // Or "Waiting..."
-             } else {
-                 confirmBtn.innerText = getText('generate_power');
-             }
+            } else {
+                confirmBtn.innerText = getText('generate_power');
+            }
 
-             const sz = document.getElementById('salvage-zone');
-             if(localSalvageMode) sz.classList.add('bg-red-600', 'border-white', 'animate-pulse');
-             else sz.classList.remove('bg-red-600', 'border-white', 'animate-pulse');
+            const sz = document.getElementById('salvage-zone');
+            if (localSalvageMode) sz.classList.add('bg-red-600', 'border-white', 'animate-pulse');
+            else sz.classList.remove('bg-red-600', 'border-white', 'animate-pulse');
 
-             if(gameState.game.isOver) {
-                 document.getElementById('game-over-screen').classList.remove('hidden');
-                 const goText = document.getElementById('game-over-text');
-                 const iWon = (p.hp > 0);
-                 goText.innerText = iWon ? getText('victory') : getText('defeat');
-                 goText.className = `text-7xl font-rpg drop-shadow-[0_0_25px_rgba(255,255,255,0.5)] ${iWon ? 'text-yellow-400' : 'text-red-600'}`;
-                 document.getElementById('rematch-button').innerText = (gameState.game.rematchVoted.includes(localPlayerKey) && gameMode !== 'single') ? getText('waiting') : getText('play_again');
-             } else document.getElementById('game-over-screen').classList.add('hidden');
+            if (gameState.game.isOver) {
+                document.getElementById('game-over-screen').classList.remove('hidden');
+                const goText = document.getElementById('game-over-text');
+                const iWon = (p.hp > 0);
+                goText.innerText = iWon ? getText('victory') : getText('defeat');
+                goText.className = `text-7xl font-rpg drop-shadow-[0_0_25px_rgba(255,255,255,0.5)] ${iWon ? 'text-yellow-400' : 'text-red-600'}`;
+                document.getElementById('rematch-button').innerText = (gameState.game.rematchVoted.includes(localPlayerKey) && gameMode !== 'single') ? getText('waiting') : getText('play_again');
+            } else document.getElementById('game-over-screen').classList.add('hidden');
         }
 
         function updateWordHistoryList() {
             const list = document.getElementById('word-history-list');
             list.innerHTML = '';
-            if(!gameState.game.wordHistory || gameState.game.wordHistory.length === 0) {
+            if (!gameState.game.wordHistory || gameState.game.wordHistory.length === 0) {
                 list.innerHTML = '<div class="text-center py-4 text-gray-500">No words yet</div>';
                 return;
             }
@@ -994,24 +1200,24 @@
             const p = gameState.players[localPlayerKey];
             const c = document.getElementById('hand-container');
             c.innerHTML = '';
-            if(!p || !p.hand) return;
+            if (!p || !p.hand) return;
 
             p.hand.forEach((card, i) => {
                 const canAfford = p.wordPower >= card.cost;
                 const el = document.createElement('div');
-                
+
                 // Use standard relative/flex item styling instead of absolute transforms
                 el.className = `w-28 h-40 rounded-lg shadow-xl border-2 transition-all cursor-pointer card-base flex flex-col items-center p-2 text-center select-none bg-gray-900 ${canAfford ? 'border-gray-500 hover:border-white card-playable' : 'border-gray-800 opacity-60 grayscale'}`;
-                
+
                 let grad = 'from-gray-800 to-black';
-                if(card.type === 'WEAPON') grad = 'from-red-900 to-black';
-                if(card.type === 'SPELL') grad = 'from-purple-900 to-black';
-                if(card.type === 'POTION') grad = 'from-green-900 to-black';
-                if(card.type === 'ARTIFACT') grad = 'from-yellow-900 to-black';
+                if (card.type === 'WEAPON') grad = 'from-red-900 to-black';
+                if (card.type === 'SPELL') grad = 'from-purple-900 to-black';
+                if (card.type === 'POTION') grad = 'from-green-900 to-black';
+                if (card.type === 'ARTIFACT') grad = 'from-yellow-900 to-black';
                 el.classList.add('bg-gradient-to-b', grad.split(' ')[0], grad.split(' ')[2]);
 
                 el.innerHTML = `
-                    <div class="absolute top-1 left-1 w-5 h-5 bg-black border border-gray-600 rounded-full flex items-center justify-center text-[10px] font-bold ${canAfford?'text-white':'text-red-500'}">${card.cost}</div>
+                    <div class="absolute top-1 left-1 w-5 h-5 bg-black border border-gray-600 rounded-full flex items-center justify-center text-[10px] font-bold ${canAfford ? 'text-white' : 'text-red-500'}">${card.cost}</div>
                     <div class="mt-4 mb-1 text-3xl material-symbols-outlined text-white/80">${card.icon}</div>
                     <div class="text-[9px] font-bold uppercase leading-tight text-white mb-1 h-6 flex items-center">${card.name}</div>
                     <div class="text-[8px] text-gray-400 leading-tight px-1">${currentLanguage === 'TH' ? (card.desc_TH || card.desc) : card.desc}</div>
@@ -1022,103 +1228,103 @@
         }
 
         async function confirmWord() {
-             const btn = document.getElementById('btn-confirm');
-             if(btn.disabled) return;
-             btn.disabled = true; btn.innerText = getText('checking');
-             
-             const word = gameState.game.selectedIndices.map(i => gameState.game.letterPool[i]).join("");
-             
-             let valid = false;
-             let ipa = "";
-             let translation = "ความหมาย";
+            const btn = document.getElementById('btn-confirm');
+            if (btn.disabled) return;
+            btn.disabled = true; btn.innerText = getText('checking');
 
-             // 1. Try Primary Dictionary (Rich Data)
-             try {
+            const word = gameState.game.selectedIndices.map(i => gameState.game.letterPool[i]).join("");
+
+            let valid = false;
+            let ipa = "";
+            let translation = "ความหมาย";
+
+            // 1. Try Primary Dictionary (Rich Data)
+            try {
                 const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
                 if (dictRes.ok) {
                     valid = true;
                     const data = await dictRes.json();
-                    if(data[0]?.phonetic) ipa = data[0].phonetic;
+                    if (data[0]?.phonetic) ipa = data[0].phonetic;
                     else if (data[0]?.phonetics?.length) ipa = data[0].phonetics.find(p => p.text)?.text || "";
-                    
+
                     // Try Translation
                     try {
                         const tr = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${word}`);
-                        if(tr.ok) { const td = await tr.json(); translation = td[0][0][0]; }
-                    } catch(e) {}
+                        if (tr.ok) { const td = await tr.json(); translation = td[0][0][0]; }
+                    } catch (e) { }
                 } else {
-                     // 2. Fallback: Datamuse API (Word Existence Check)
-                     try {
-                         const dmRes = await fetch(`https://api.datamuse.com/words?sp=${word.toLowerCase()}&max=1`);
-                         if (dmRes.ok) {
-                             const dmData = await dmRes.json();
-                             // Strict check: The word returned must match exactly what we typed
-                             if (dmData.length > 0 && dmData[0].word.toLowerCase() === word.toLowerCase()) {
-                                 valid = true;
-                                 // Datamuse doesn't give IPA/Trans easily, so we use placeholders or try translate again
-                                 try {
-                                     const tr = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${word}`);
-                                     if(tr.ok) { const td = await tr.json(); translation = td[0][0][0]; }
-                                 } catch(e) {}
-                             }
-                         }
-                     } catch(e) { /* ignore */ }
+                    // 2. Fallback: Datamuse API (Word Existence Check)
+                    try {
+                        const dmRes = await fetch(`https://api.datamuse.com/words?sp=${word.toLowerCase()}&max=1`);
+                        if (dmRes.ok) {
+                            const dmData = await dmRes.json();
+                            // Strict check: The word returned must match exactly what we typed
+                            if (dmData.length > 0 && dmData[0].word.toLowerCase() === word.toLowerCase()) {
+                                valid = true;
+                                // Datamuse doesn't give IPA/Trans easily, so we use placeholders or try translate again
+                                try {
+                                    const tr = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q=${word}`);
+                                    if (tr.ok) { const td = await tr.json(); translation = td[0][0][0]; }
+                                } catch (e) { }
+                            }
+                        }
+                    } catch (e) { /* ignore */ }
                 }
-             } catch(e) { valid = true; } // Offline/Network Error Fallback
+            } catch (e) { valid = true; } // Offline/Network Error Fallback
 
-             let thaiReading = ipaToThai(ipa);
+            let thaiReading = ipaToThai(ipa);
 
-             if(valid && word.length >= 2) {
-                 const p = gameState.players[localPlayerKey];
-                 const gain = word.length + (word.length>=5?2:0);
-                 p.wordPower += gain;
-                 
-                 // Show Result Pop-up locally immediately
-                 showResultPopup(word, ipa, thaiReading, translation);
+            if (valid && word.length >= 2) {
+                const p = gameState.players[localPlayerKey];
+                const gain = word.length + (word.length >= 5 ? 2 : 0);
+                p.wordPower += gain;
 
-                 // Update History (Synced)
-                 gameState.game.wordHistory.unshift({
-                     word: word,
-                     score: gain,
-                     player: localPlayerKey,
-                     timestamp: Date.now(),
-                     ipa: ipa,
-                     thai: thaiReading,
-                     trans: translation // Storing translation for syncing
-                 });
-                 if(gameState.game.wordHistory.length > 20) gameState.game.wordHistory.pop();
+                // Show Result Pop-up locally immediately
+                showResultPopup(word, ipa, thaiReading, translation);
 
-                 // Remove letters
-                 gameState.game.selectedIndices.sort((a,b)=>b-a).forEach(i => gameState.game.letterPool.splice(i,1));
-                 gameState.game.selectedIndices = [];
-                 
-                 // REFILL LOGIC
-                 refillLetters();
-                 
-                 showToast(`+${gain} Power!`, "text-blue-400");
-                 playSound('magic');
-                 updateSupabaseState();
-             } else {
-                 showToast(getText('word_not_found'), "text-red-400");
-                 playSound('error');
-             }
-             btn.disabled = false; btn.innerText = getText('generate_power');
-             updateUI();
+                // Update History (Synced)
+                gameState.game.wordHistory.unshift({
+                    word: word,
+                    score: gain,
+                    player: localPlayerKey,
+                    timestamp: Date.now(),
+                    ipa: ipa,
+                    thai: thaiReading,
+                    trans: translation // Storing translation for syncing
+                });
+                if (gameState.game.wordHistory.length > 20) gameState.game.wordHistory.pop();
+
+                // Remove letters
+                gameState.game.selectedIndices.sort((a, b) => b - a).forEach(i => gameState.game.letterPool.splice(i, 1));
+                gameState.game.selectedIndices = [];
+
+                // REFILL LOGIC
+                refillLetters();
+
+                showToast(`+${gain} Power!`, "text-blue-400");
+                playSound('magic');
+                updateSupabaseState();
+            } else {
+                showToast(getText('word_not_found'), "text-red-400");
+                playSound('error');
+            }
+            btn.disabled = false; btn.innerText = getText('generate_power');
+            updateUI();
         }
 
         function showResultPopup(word, ipa, thaiReading, translation) {
-             const resBox = document.getElementById('word-result-display');
-             document.getElementById('result-word').innerText = word;
-             document.getElementById('result-ipa').innerHTML = ipa ? `/${ipa}/ ${thaiReading ? '<span class="text-blue-200">('+thaiReading+')</span>' : ''}` : '';
-             document.getElementById('result-thai').innerText = translation || "";
-             resBox.classList.remove('hidden');
-             resBox.style.opacity = '1';
-             resBox.style.top = '15%';
-             setTimeout(() => { 
-                 resBox.style.opacity = '0'; 
-                 resBox.style.top = '10%';
-                 setTimeout(() => resBox.classList.add('hidden'), 300);
-             }, 4000);
+            const resBox = document.getElementById('word-result-display');
+            document.getElementById('result-word').innerText = word;
+            document.getElementById('result-ipa').innerHTML = ipa ? `/${ipa}/ ${thaiReading ? '<span class="text-blue-200">(' + thaiReading + ')</span>' : ''}` : '';
+            document.getElementById('result-thai').innerText = translation || "";
+            resBox.classList.remove('hidden');
+            resBox.style.opacity = '1';
+            resBox.style.top = '15%';
+            setTimeout(() => {
+                resBox.style.opacity = '0';
+                resBox.style.top = '10%';
+                setTimeout(() => resBox.classList.add('hidden'), 300);
+            }, 4000);
         }
 
         function surrenderGame() {
@@ -1133,7 +1339,7 @@
         function confirmSurrender() {
             closeSurrenderModal();
             if (gameState.game.isOver) return;
-            
+
             gameState.players[localPlayerKey].hp = 0;
             gameState.game.isOver = true; // Mark game as over immediately
             updateSupabaseState(); // Sync
@@ -1142,145 +1348,154 @@
         }
 
         // ... (Other functions: toggleLetterSelection, clearWord, backspaceWord, playerAttack, endTurn, botPlayTurn, startTurn, drawCard, useCardFromHand, toggleSalvageMode, showToast, shuffleLetters, gameOver, toggleWordHistory, checkReconnection, startGlobalTimer, resetGame, requestRematch, returnToMainMenu, sendChatMessage, renderChat) ...
-        
+
         function toggleLetterSelection(idx) {
-            if(gameState.game.currentPlayer !== localPlayerKey) return showToast(getText('not_your_turn'), "text-red-400");
+            if (gameState.game.currentPlayer !== localPlayerKey) return showToast(getText('not_your_turn'), "text-red-400");
             const i = gameState.game.selectedIndices.indexOf(idx);
-            if(i > -1) gameState.game.selectedIndices.splice(i, 1);
+            if (i > -1) gameState.game.selectedIndices.splice(i, 1);
             else gameState.game.selectedIndices.push(idx);
             playSound('select');
             updateUI();
         }
-        function clearWord() { if(gameState.game.currentPlayer===localPlayerKey) { gameState.game.selectedIndices=[]; updateUI(); } }
-        function backspaceWord() { if(gameState.game.currentPlayer===localPlayerKey && gameState.game.selectedIndices.length>0) { gameState.game.selectedIndices.pop(); updateUI(); } }
+        function clearWord() { if (gameState.game.currentPlayer === localPlayerKey) { gameState.game.selectedIndices = []; updateUI(); } }
+        function backspaceWord() { if (gameState.game.currentPlayer === localPlayerKey && gameState.game.selectedIndices.length > 0) { gameState.game.selectedIndices.pop(); updateUI(); } }
         function playerAttack() {
-            if(gameState.game.currentPlayer !== localPlayerKey) return;
+            if (gameState.game.currentPlayer !== localPlayerKey) return;
             const p = gameState.players[localPlayerKey];
             const dmg = p.wordPower + p.activeBuffs + p.permanentBuffs;
-            if(dmg <= 0) return showToast(getText('not_enough_stamina_5'), "text-gray-400"); // Using stamina text as placeholder or generic "Need Power" if available
-            const oppKey = localPlayerKey==='player1'?'player2':'player1';
+            if (dmg <= 0) return showToast(getText('not_enough_stamina_5'), "text-gray-400"); // Using stamina text as placeholder or generic "Need Power" if available
+            const oppKey = localPlayerKey === 'player1' ? 'player2' : 'player1';
             gameState.players[oppKey].hp = Math.max(0, gameState.players[oppKey].hp - dmg);
-            
+
             const dmgText = document.createElement('div'); dmgText.className = "damage-text text-4xl text-red-500 font-rpg"; dmgText.innerText = `-${dmg}`;
             const anchor = document.getElementById('opponent-damage-anchor').getBoundingClientRect();
-            dmgText.style.left = anchor.left+'px'; dmgText.style.top = anchor.top+'px'; document.body.appendChild(dmgText); setTimeout(()=>dmgText.remove(), 1000);
-            
+            dmgText.style.left = anchor.left + 'px'; dmgText.style.top = anchor.top + 'px'; document.body.appendChild(dmgText); setTimeout(() => dmgText.remove(), 1000);
+
             p.wordPower = 0; playSound('attack');
-            if(gameState.players[oppKey].hp <= 0) gameOver(); else endTurn();
+            if (gameState.players[oppKey].hp <= 0) gameOver(); else endTurn();
             updateSupabaseState();
         }
         function endTurn(force = false) {
             if (gameState.game.isOver) return;
             if (!force && gameMode === 'multi' && gameState.game.currentPlayer !== localPlayerKey) return;
 
-            gameState.game.turn++; 
-            gameState.game.currentPlayer = gameState.game.currentPlayer === 'player1' ? 'player2' : 'player1'; 
+            gameState.game.turn++;
+            gameState.game.currentPlayer = gameState.game.currentPlayer === 'player1' ? 'player2' : 'player1';
             gameState.game.timer = 90;
-            
+
             // Auto refill and draw for next player happens in startTurn
-            startTurn(); 
+            startTurn();
             updateSupabaseState();
-            
+
             if (gameMode === 'single' && gameState.game.currentPlayer === 'player2') { showToast(getText('opponent_turn'), "text-yellow-400"); setTimeout(botPlayTurn, 1500); }
         }
         function botPlayTurn() {
             if (gameState.game.isOver) return;
-            const dmg = Math.floor(Math.random()*5)+5+Math.floor(gameState.game.turn/2);
+            const dmg = Math.floor(Math.random() * 5) + 5 + Math.floor(gameState.game.turn / 2);
             gameState.players.player1.hp = Math.max(0, gameState.players.player1.hp - dmg);
             showToast(`${getText('bot_attacks')}: -${dmg}`, "text-red-500");
             if (gameState.players.player1.hp <= 0) gameOver();
             else { gameState.game.turn++; gameState.game.currentPlayer = 'player1'; gameState.game.timer = 90; startTurn(); showToast(getText('your_turn'), "text-green-400"); }
             updateUI();
         }
-        function startTurn() { 
-            if(gameState.game.turn > 1) gameState.players[gameState.game.currentPlayer].stamina = Math.min(MAX_STAMINA, gameState.players[gameState.game.currentPlayer].stamina + 20); 
-            
+        function startTurn() {
+            if (gameState.game.turn > 1) gameState.players[gameState.game.currentPlayer].stamina = Math.min(MAX_STAMINA, gameState.players[gameState.game.currentPlayer].stamina + 20);
+
             // Auto Draw Logic
             drawCardsUntilFull();
-            
+
             // Auto Refill Logic (if needed)
             refillLetters();
-            
-            updateUI(); 
-        }
-        
-        function drawCardsUntilFull() {
-             const pKey = gameState.game.currentPlayer;
-             const p = gameState.players[pKey];
-             while(p.hand.length < 5 && p.deck.length > 0) {
-                 p.hand.push(p.deck.pop());
-             }
-        }
-        
-        function drawCard() {
-             const p = gameState.players[localPlayerKey];
-             // FIX: Prevent drawing if not my turn
-             if(gameState.game.currentPlayer !== localPlayerKey) return showToast(getText('not_your_turn'), "text-red-400");
 
-             if(p.stamina >= 20 && p.deck.length > 0) { p.stamina -= 20; p.hand.push(p.deck.pop()); updateSupabaseState(); updateUI(); playSound('select'); }
-             else showToast(getText('not_enough_stamina_20'), "text-red-400");
+            updateUI();
+        }
+
+        function drawCardsUntilFull() {
+            // Only draw if it's MY turn
+            if (gameState.game.currentPlayer !== localPlayerKey) return;
+
+            const p = gameState.players[localPlayerKey];
+            let drawn = false;
+            while (p.hand.length < 5 && p.deck.length > 0) {
+                p.hand.push(p.deck.pop());
+                drawn = true;
+            }
+            if (drawn) playSound('draw');
+        }
+
+        function drawCard() {
+            const p = gameState.players[localPlayerKey];
+            // FIX: Prevent drawing if not my turn
+            if (gameState.game.currentPlayer !== localPlayerKey) return showToast(getText('not_your_turn'), "text-red-400");
+
+            if (p.stamina >= 20 && p.deck.length > 0) { p.stamina -= 20; p.hand.push(p.deck.pop()); updateSupabaseState(); updateUI(); playSound('select'); }
+            else showToast(getText('not_enough_stamina_20'), "text-red-400");
         }
         function useCardFromHand(idx) {
-            if(gameState.game.currentPlayer !== localPlayerKey) return;
+            if (gameState.game.currentPlayer !== localPlayerKey) return;
             const p = gameState.players[localPlayerKey];
             const card = p.hand[idx];
-            if(localSalvageMode) { p.stamina = Math.min(100, p.stamina + 5); p.hand.splice(idx, 1); showToast("+5 STM", "text-green-400"); updateUI(); updateSupabaseState(); return; }
-            if(p.wordPower >= card.cost) {
+            if (localSalvageMode) { p.stamina = Math.min(100, p.stamina + 5); p.hand.splice(idx, 1); showToast("+5 STM", "text-green-400"); updateUI(); updateSupabaseState(); return; }
+            if (p.wordPower >= card.cost) {
                 p.wordPower -= card.cost; p.hand.splice(idx, 1);
-                if(card.type === 'WEAPON') { p.permanentBuffs += card.val; if(!p.equippedItems) p.equippedItems=[]; p.equippedItems.push(card); }
-                else if(card.type === 'SPELL') { const opp = gameState.players[localPlayerKey==='player1'?'player2':'player1']; opp.hp = Math.max(0, opp.hp - card.val); if(opp.hp<=0) gameOver(); }
-                else if(card.type === 'POTION') { p.hp = Math.min(100, p.hp + card.val); }
-                else if(card.type === 'ARTIFACT') { p.wordPower += card.val; } 
+                if (card.type === 'WEAPON') { p.permanentBuffs += card.val; if (!p.equippedItems) p.equippedItems = []; p.equippedItems.push(card); }
+                else if (card.type === 'SPELL') { const opp = gameState.players[localPlayerKey === 'player1' ? 'player2' : 'player1']; opp.hp = Math.max(0, opp.hp - card.val); if (opp.hp <= 0) gameOver(); }
+                else if (card.type === 'POTION') { p.hp = Math.min(100, p.hp + card.val); }
+                else if (card.type === 'ARTIFACT') { p.wordPower += card.val; }
                 playSound('magic'); updateUI(); updateSupabaseState();
             } else showToast(getText('not_enough_stamina_5'), "text-red-400"); // Should use "Need Power" key if available, using placeholder
         }
         function toggleSalvageMode() { localSalvageMode = !localSalvageMode; updateUI(); }
-        function showToast(msg, color="text-white") {
+        function showToast(msg, color = "text-white") {
             const t = document.getElementById('toast'); t.innerText = msg; t.className = `fixed top-20 left-1/2 -translate-x-1/2 px-6 py-2 bg-black/90 rounded-full border border-gray-500 shadow-2xl z-[3000] font-rpg text-lg transform translate-y-4 ${color}`;
-            t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)'; setTimeout(()=> { t.style.opacity='0'; t.style.transform='translate(-50%, 16px)'; }, 2000);
+            t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)'; setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, 16px)'; }, 2000);
         }
         function shuffleLetters() {
-             const p = gameState.players[localPlayerKey];
-             if(p.stamina >= 5) { 
-                 p.stamina -= 5; 
-                 // Shuffle existing letters only (Just re-order)
-                 gameState.game.letterPool.sort(() => Math.random() - 0.5);
-                 gameState.game.selectedIndices = []; 
-                 updateUI(); updateSupabaseState(); 
-             }
-             else showToast(getText('not_enough_stamina_5'), "text-yellow-400");
+            const p = gameState.players[localPlayerKey];
+            if (p.stamina >= 5) {
+                p.stamina -= 5;
+                // Shuffle existing letters only (Just re-order)
+                gameState.game.letterPool.sort(() => Math.random() - 0.5);
+                gameState.game.selectedIndices = [];
+                updateUI(); updateSupabaseState();
+            }
+            else showToast(getText('not_enough_stamina_5'), "text-yellow-400");
         }
         function gameOver() { gameState.game.isOver = true; document.getElementById('game-over-screen').classList.remove('hidden'); }
         function toggleWordHistory() { document.getElementById('word-history-panel').classList.toggle('hidden'); }
-        function checkReconnection() { const r = localStorage.getItem('rpg_room_id'); if(r) { document.getElementById('main-menu').style.display='none'; document.getElementById('room-id-input').value=r; joinGame(); } }
-        
+        function checkReconnection() { const r = localStorage.getItem('rpg_room_id'); if (r) { document.getElementById('main-menu').style.display = 'none'; document.getElementById('room-id-input').value = r; joinGame(); } }
+
         function startGlobalTimer() {
-            if(gameTimerInterval) clearInterval(gameTimerInterval);
+            if (gameTimerInterval) clearInterval(gameTimerInterval);
             gameTimerInterval = setInterval(() => {
-                if(gameState.game.status === 'PLAYING' && !gameState.game.isOver) {
-                     // Only the current player updates the timer to prevent sync issues
-                     if (gameState.game.currentPlayer === localPlayerKey) {
-                         if(gameState.game.timer > 0) gameState.game.timer--; 
-                         else endTurn(true); // Force end turn if timer runs out
-                         updateSupabaseState();
-                     }
-                     updateUI();
+                if (gameState.game.status === 'PLAYING' && !gameState.game.isOver) {
+                    // Only the current player updates the timer and handles turn switch
+                    if (gameState.game.currentPlayer === localPlayerKey) {
+                        if (gameState.game.timer > 0) {
+                            gameState.game.timer--;
+                            updateSupabaseState();
+                        } else {
+                            endTurn(true);
+                            // Note: endTurn() already calls updateSupabaseState(), so we don't call it again here
+                        }
+                    }
+                    updateUI();
                 }
             }, 1000);
         }
-        
+
         function sendChatMessage() {
-            const i = document.getElementById('chat-input'); const m = i.value.trim(); if(!m) return;
-            gameState.game.chat.push({sender: gameState.players[localPlayerKey].name, text: m});
-            if(gameState.game.chat.length>20) gameState.game.chat.shift();
-            i.value=''; renderChat(gameState.game.chat); updateSupabaseState();
+            const i = document.getElementById('chat-input'); const m = i.value.trim(); if (!m) return;
+            gameState.game.chat.push({ sender: gameState.players[localPlayerKey].name, text: m });
+            if (gameState.game.chat.length > 20) gameState.game.chat.shift();
+            i.value = ''; renderChat(gameState.game.chat); updateSupabaseState();
         }
         function renderChat(c) {
-            const d = document.getElementById('chat-messages'); d.innerHTML='';
-            c.forEach(x => { const el=document.createElement('div'); el.innerHTML=`<span class="text-yellow-500 font-bold">${x.sender}:</span> ${x.text}`; d.appendChild(el); });
-            d.scrollTop=d.scrollHeight;
+            const d = document.getElementById('chat-messages'); d.innerHTML = '';
+            c.forEach(x => { const el = document.createElement('div'); el.innerHTML = `<span class="text-yellow-500 font-bold">${x.sender}:</span> ${x.text}`; d.appendChild(el); });
+            d.scrollTop = d.scrollHeight;
         }
-        function requestRematch() { if(gameMode==='single') startSinglePlayer(); else { gameState.game.rematchVoted.push(localPlayerKey); updateSupabaseState(); } updateUI(); }
+        function requestRematch() { if (gameMode === 'single') startSinglePlayer(); else { gameState.game.rematchVoted.push(localPlayerKey); updateSupabaseState(); } updateUI(); }
         function returnToMainMenu() { localStorage.removeItem('rpg_room_id'); location.reload(); }
         function resetGame() { resetGameStateLogic(); startTurn(); updateSupabaseState(); }
 
@@ -1322,4 +1537,5 @@
 
     </script>
 </body>
+
 </html>
