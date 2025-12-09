@@ -1052,7 +1052,7 @@
 
         function refillLetters() {
             const currentLen = gameState.game.letterPool.length;
-            const targetLen = Math.floor(Math.random() * 6) + 10; // 10-15 letters
+            const targetLen = 12; // Fixed length for stability (was random 10-15)
 
             if (currentLen < 7) {
                 const vowels = "AEIOU";
@@ -1064,8 +1064,8 @@
                     const source = isVowel ? vowels : consonants;
                     gameState.game.letterPool.push(source[Math.floor(Math.random() * source.length)]);
                 }
-                // Don't sort automatically to keep visual stability, or sort if preferred
-                gameState.game.letterPool.sort(() => Math.random() - 0.5);
+                // Removed auto-shuffle (sort) to prevent existing letters from jumping around
+                // User can use the Shuffle button if they want to randomize positions
             }
         }
 
@@ -1393,6 +1393,45 @@
         }
 
         // ... (Other functions: toggleLetterSelection, clearWord, backspaceWord, playerAttack, endTurn, botPlayTurn, startTurn, drawCard, useCardFromHand, toggleSalvageMode, showToast, shuffleLetters, gameOver, toggleWordHistory, checkReconnection, startGlobalTimer, resetGame, requestRematch, returnToMainMenu, sendChatMessage, renderChat) ...
+
+        // KEYBOARD SUPPORT
+        function handleKeyboardInput(e) {
+            // 1. Ignore if typing in an input field
+            const activeTags = ['INPUT', 'TEXTAREA'];
+            if (activeTags.includes(document.activeElement.tagName)) return;
+
+            // 2. Ignore if modal is open (except game over maybe, but safest to ignore all)
+            const chatBody = document.getElementById('chat-input');
+            if (document.activeElement === chatBody) return;
+
+            const key = e.key.toUpperCase();
+
+            // 3. ENTER -> Confirm
+            if (e.key === 'Enter') {
+                confirmWord();
+                return;
+            }
+
+            // 4. BACKSPACE -> Backspace
+            if (e.key === 'Backspace') {
+                backspaceWord();
+                return;
+            }
+
+            // 5. A-Z -> Select Letter
+            if (/^[A-Z]$/.test(key)) {
+                // Find first available occurrence of this letter in letterPool
+                // that is NOT already selected (is not in selectedIndices)
+                for (let i = 0; i < gameState.game.letterPool.length; i++) {
+                    if (gameState.game.letterPool[i] === key && !gameState.game.selectedIndices.includes(i)) {
+                        toggleLetterSelection(i);
+                        // Add visual feedback sound if wanted, but toggleLetterSelection might update UI
+                        break; // Select only one instance per keypress
+                    }
+                }
+            }
+        }
+        document.addEventListener('keydown', handleKeyboardInput);
 
         function toggleLetterSelection(idx) {
             if (gameState.game.currentPlayer !== localPlayerKey) return showToast(getText('not_your_turn'), "text-red-400");
